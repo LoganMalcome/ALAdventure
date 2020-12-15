@@ -1,0 +1,3643 @@
+Rem Project: ALadventure1
+Rem Created: Tuesday, December 15, 2009
+
+Rem ***** Main Source File *****
+
+rem Standard Setup Code
+`SET DISPLAY MODE 512,384,32,1
+hide mouse
+sync on : sync rate 92 : color backdrop rgb(0,0,128) 
+set text font "arial" : set text transparent
+autocam off
+
+syncy=92
+
+backdrop off
+
+main_directory$=get dir$()
+
+width=screen width()
+height=screen height()
+
+load sound "media\missle.wav",1
+load sound "media\boom.wav",2
+load sound "media\lock.wav",3
+load sound "media\live.wav",5
+load sound "media\fuel.wav",6
+
+load sound "media\large explosion.wav",10
+
+menu:
+
+clear_sprites(1,5000)
+
+easy=0
+hard=1
+poop=2
+mode=easy
+
+loaded=0
+
+load image "media\title.bmp",1,1
+ink RGB(255,255,255),RGB(0,0,0)
+dim starx(50)
+dim stary(50)
+for s=1 to 25 
+starx(s)=rnd(width) :stary(s)=rnd(height) :
+next s
+
+for s=26 to 50 
+starx(s)=rnd(width) :stary(s)=rnd(height) :
+next s
+
+x=width+1
+
+ready=0
+
+set text size 14
+TEXT_SIZE=14
+
+sel=1
+
+if music exist(1)=1 then delete music 1
+
+load music "media\will.mid",1
+loop music 1
+
+frame=1
+
+do
+cls
+ink RGB(240,240,240),0
+if x>width/2-160 then dec x,2 :if x<width/2-159 then play sound 10
+
+for s=1 to 25 
+starx(s)=starx(s)-1 :dot starx(s),stary(s) :
+if starx(s)=<0 
+starx(s)=640 :stary(s)=rnd(height) :
+endif
+next s
+
+for s=26 to 30 
+starx(s)=starx(s)-2 :dot starx(s),stary(s)
+if starx(s)=<0
+starx(s)=640 :stary(s)=rnd(height) :
+endif
+next s
+
+for s=31 to 50
+starx(s)=starx(s)-4 :dot starx(s),stary(s)
+if starx(s)=<0 
+starx(s)=640 :stary(s)=rnd(height) :
+endif
+next s
+
+paste image 1,x,50,1
+
+if returnkey()=0 then space=0
+
+if returnkey()=1 and ready=0 :space=1
+ready=1 
+endif
+
+if ready=1
+if sel=1 then ink RGB(70,0,255),0 :if returnkey()=1 and space=0 
+m=0 :lx=width/2-40 :ly=228
+sleep 170
+while m=0
+cls
+line lx,ly,lx+80,ly
+if upkey()=1 then dec ly,20 :sleep 170
+if downkey()=1 then inc ly,20 :sleep 170
+if ly<228 then ly=268
+if ly>268 then ly=228
+center text width/2,180,"What mode?"
+center text width/2,220,"Easy"
+center text width/2,240,"HARD"
+center text width/2,260,"Insanity(You don't whant this mode.)"
+if ly=228 then mode=easy
+if ly=248 then mode=hard
+if ly=268 then mode=poop
+if returnkey()=1 then m=1
+sync
+endwhile
+undim starx(0) :undim stary(0) :stop music 1 :delete music 1 :goto start
+endif :`for start
+
+text 220,320,"New game"
+ink RGB(255,255,255),0
+if sel=2 then ink RGB(70,0,255),0 :if spacekey()=1 and space=0 then load=1 :stop music 1 :delete music 1 :goto load
+text 218,335,"Load game"
+
+if upkey()=0 then up=0
+if downkey()=0 then down=0
+
+if upkey()=1 and up=0 then dec sel :up=1
+if downkey()=1 and down=0 then inc sel :down=1
+if sel=3 then sel=1
+if sel=0 then sel=2
+endif
+
+sync
+loop
+
+frame=0
+
+start:
+
+cartoon1()
+
+level=1
+if mode=poop then level=0
+gun=1
+tape=110
+owngun2=0
+owngun3=0
+tape=0
+score=0
+lives=3
+
+load:
+sleep 200
+if load=1
+dim file$(50)
+set dir main_directory$+"\saved"
+perform checklist for files
+fil=0 :cx=width/2-25 :cy=10
+while fil=0
+cls
+ink RGB(0,75,192),0
+box cx,cy,cx+50,cy+15
+scroll=0
+for t=1 to checklist quantity()
+
+IF checklist string$(t)<>"." AND checklist string$(t)<>".."
+
+FOLDER$=checklist string$(t)
+
+file$(t)=checklist string$(t)
+
+ink RGB(255,255,255),0
+center text width/2,10+scroll,file$(T) :INC FOLDERy,20
+if spacekey()=1 and cy=10+scroll then s_game$=file$(t):fil=1 :t=checklist quantity()+1
+inc scroll,15
+endif
+
+next t
+
+if cy<10 then cy=10
+
+if upkey()=1 then dec cy,15 :sleep 90
+if downkey()=1 then inc cy,15 :sleep 90
+
+sync
+endwhile
+
+
+open to read 1,s_game$
+
+read file 1,level
+read file 1,tape
+read file 1,score
+read file 1,mode
+read file 1,lives
+close file 1
+cls
+loaded=1
+load=0
+set dir main_directory$
+endif :`for load
+
+grid=25
+
+color baCKdrop RGB(0,0,0)
+
+get_lolo()
+
+`fx
+for i=1 to 5 :load image "anims\fx\e"+str$(i)+".bmp",9000+i,1 :next i
+
+for i=1 to 3 :load image "anims\fx\fwoosh"+str$(i)+".bmp",9010+i,1 :next i
+
+get_tiles("anims\textures.png",25,25,19,11,1000,1,0,0)
+
+get_tiles("anims\backs1.png",50,50,3,2,1245,1,0,0)
+get_tiles("anims\backs2.png",50,50,3,2,1257,1,0,0)
+
+get_enemys()
+
+load image "anims\stat.bmp",150,1 :load image "anims\energy.bmp",151,1
+load image "anims\en_stat.bmp",160,1 :load image "anims\enhp.png",161,1
+
+
+
+reset:
+
+save_spot=0
+
+if level=7 then cartoon2() :goto shipbat
+
+if level=4 then cartoon4()
+
+if level=9 then cartoon5()
+if level=10 then cartoon6()
+
+if music exist(1)=1 AND LOOP_MUSIC=0
+if music playing(1)=1 then stop music 1
+delete music 1
+endif
+
+LOOP_MUSIC=0 
+if level=0 then load music "media\battle.mid",1 :loop music 1 
+
+if level=1 then load music "media\level1.mid",1 :loop music 1 :LOOP_MUSIC=1
+IF LEVEL=2 THEN LOOP_MUSIC=0 :char_x#=200 :char_y#=24
+
+if level=3 then load music "media\level3.mid",1 :loop music 1 :save_spot=1
+if level=4 then load music "media\level4.wav",1 :loop music 1 :save_spot=1
+if level=5 then load music "media\level1.mid",1 :loop music 1 :save_spot=1
+if level=6 then load music "media\batley.mid",1 :loop music 1 :save_spot=1
+
+if level=8 then load music "media\desert.mid",1 :loop music 1 :save_spot=1
+if level=9 then load music "media\race.mid",1 :loop music 1 :save_spot=1
+if level=10 then load music "media\level10.mid",1 :loop music 1 :save_spot=1
+if level=11 then load music "media\inership.mid",1 :loop music 1 :LOOP_MUSIC=1 :save_spot=1
+if level=12 then LOOP_MUSIC=1 :
+if level=13 then LOOP_MUSIC=1 :
+if level=7 then goto shipbat
+if level=15 then load music "media\batley.mid",1 :loop music 1 :save_spot=1
+if level=16 then load music "media\battle.mid",1 :loop music 1 :loop_music=1 :save_spot=1
+if level=17 then LOOP_MUSIC=1
+if level=19 then load music "media\finaly.mid",1 :loop music 1 :loop_music=1 :save_spot=1
+if level=20 then LOOP_MUSIC=1 :
+enhp1=2
+if level>4 then enhp1=3
+enp_hp=0
+if mode=hard or mode=poop then enhp1=4 :enp_hp=2
+
+exiting=0
+fuel=0
+
+e1_move=0
+dim en_hp(240)
+for e=0 to 240 :en_hp(e)=0 :next e
+undim en_direc(0)
+dim en_direc(240)
+dim en_x#(240)
+dim en_y#(240)
+dim en_var(240)
+dim en_oldy(20)
+
+dim grenade(20,1,1)
+
+dim en_shot(240)
+dim en_shot_dir(240)
+dim en_shot_x(240)
+dim en_shot_y(240)
+
+dim rocket(8)
+dim rocket_x#(8)
+dim rocket_y#(8)
+dim rocket_direc(8)
+
+dim explode(24)
+dim explodex(24)
+dim explodey(24)
+
+dim fwoosh(24)
+dim fwooshx(24)
+dim fwooshy(24)
+
+mapfile:
+open to read 1,"maps\level"+str$(level)+".mlp"
+read string 1,pass$
+read string 1,background$
+read file 1,sizex
+read file 1,sizey
+read file 1,layer
+
+if level=5 then background$="grey.png"
+if level=6 then background$="grey2.png"
+
+backdrop=0 :anim_back=0
+
+if background$<>"" and file exist("backgrounds\"+background$)=1 then load image "backgrounds\"+background$,99,0 :backdrop=1
+if background$="gears.png" 
+load image "backgrounds\gear.png",99,0 :backdrop=0 :anim_back=1
+load image "backgrounds\gear2.png",100,0 :
+endif
+
+if background$="sand.png" or level=9
+load image "backgrounds\sand2.png",100,0 :backdrop=0 :anim_back=2
+load image "backgrounds\sand3.png",101,0 :
+load image "backgrounds\clouds.bmp",102,1
+load image "backgrounds\ship.bmp",103,1
+endif
+
+
+undim map(0)
+dim map(sizex,sizey,layer,1)
+
+`create animated sprite 2000,"anims\enemys\alien1.bmp",62,62,3000
+
+while file end(1)=0
+  read file 1,image
+  read file 1,typ
+  read file 1,l
+  read file 1,x
+  read file 1,y
+
+if x<sizex+1 and y<sizey+1 and l<layer+1 and image>1
+map(x,y,l,0)=image
+map(x,y,l,1)=typ
+
+if level=4
+if image=1047 then map(x,y,l,1)=103
+endif
+
+endif
+
+if image>2999
+map(x,y,l,0)=0
+map(x,y,l,1)=0
+endif
+
+`place charecter
+if image=1
+char_X#=x*25
+char_Y#=y*25
+
+endif :`for placement of charecter
+
+rem enemy enmy enemy enemy enemy enemy enemy enemy enemy enemy enemy enemy
+
+`1 
+if image=3000
+for e=1 to 19
+if en_hp(e)<1 
+en_hp(e)=enhp1 :en_x#(e)=x*grid :en_y#(e)=y*grid+16 :e=20
+`sprite e+1000,x*25,y*25,3000 :offset sprite e+1000,31,0
+endif
+map(x,y,l,0)=0
+map(x,y,l,1)=0
+next e
+endif
+
+`2
+if image=3001
+for e=20 to 39
+if en_hp(e)<1 
+en_hp(e)=2 :en_x#(e)=x*grid :en_y#(e)=y*grid+16 :e=40
+`sprite e+1000,x*25,y*25,3000 :offset sprite e+1000,31,0
+endif
+map(x,y,l,0)=0
+map(x,y,l,1)=0
+next e
+endif
+
+`3
+if image=3002
+for e=40 to 59
+if en_hp(e)<1 
+en_hp(e)=4 :en_x#(e)=x*grid+12 :en_y#(e)=y*grid+13 :e=60
+`sprite e+1000,x*25,y*25,3000 :offset sprite e+1000,31,0
+endif
+map(x,y,l,0)=0
+map(x,y,l,1)=0
+next e
+endif
+
+`4 canon
+if image=3003
+for e=60 to 79
+if en_hp(e)<1 
+en_hp(e)=6 :en_x#(e)=x*grid :en_y#(e)=y*grid+9 :e=80
+endif
+map(x,y,l,0)=0
+map(x,y,l,1)=0
+next e
+endif
+
+`5 army tank
+if image=3004
+for e=80 to 99
+if en_hp(e)<1 
+en_hp(e)=15 :en_x#(e)=x*grid :en_y#(e)=y*grid+9 :e=100
+endif
+map(x,y,l,0)=0
+map(x,y,l,1)=0
+next e
+endif
+
+`6 SLIME
+if image=3005
+for e=100 to 119
+if en_hp(e)<1 
+en_hp(e)=2 :en_x#(e)=x*grid :en_y#(e)=y*grid+9 :e=120
+endif
+map(x,y,l,0)=0
+map(x,y,l,1)=0
+next e
+endif
+
+`7 Spikes
+if image=3006
+for e=120 to 139
+if en_hp(e)<1
+if typ=2 then en_var(e)=1
+if typ=3 then en_var(e)=2
+en_oldy(e-120)=y*gridy
+en_hp(e)=25 :en_x#(e)=x*grid :en_y#(e)=y*grid :e=140
+endif
+map(x,y,l,0)=0
+map(x,y,l,1)=0
+next e
+endif
+
+`8 tile up
+if image=3007
+for e=140 to 159
+if en_hp(e)<1 
+en_hp(e)=2 :en_x#(e)=x*grid :en_y#(e)=y*grid+7 :e=160
+endif
+map(x,y,l,0)=0
+map(x,y,l,1)=0
+next e
+endif
+
+`9 robot
+if image=3008
+for e=160 to 179
+if en_hp(e)<1 
+en_hp(e)=1 :en_x#(e)=x*grid :en_y#(e)=y*grid-2 :e=180
+endif
+map(x,y,l,0)=0
+map(x,y,l,1)=0
+next e
+endif
+
+`10!! alien guard
+if image=3009
+for e=180 to 199
+if en_hp(e)<1 
+en_var(e)=rnd(1)
+en_hp(e)=4+enp_hp :en_x#(e)=x*grid :en_y#(e)=y*grid+10 :e=200
+endif
+map(x,y,l,0)=0
+map(x,y,l,1)=0
+next e
+endif
+
+`11!!! invunirable thing
+if image=3010
+for e=200 to 219
+if en_hp(e)<1 
+en_direc(e)=rnd(3)
+en_hp(e)=999 :
+en_x#(e)=x*grid :en_y#(e)=y*grid :e=220
+endif
+map(x,y,l,0)=0
+map(x,y,l,1)=0
+next e
+endif
+
+`12!!! robot 2
+if image=3011
+for e=220 to 239
+if en_hp(e)<1 
+en_direc(e)=rnd(3)
+en_hp(e)=3+enp_hp :
+en_x#(e)=x*grid :en_y#(e)=y*grid :e=240
+endif
+map(x,y,l,0)=0
+map(x,y,l,1)=0
+next e
+endif
+
+endwhile
+
+close file 1
+
+leg_anim#=20
+torso_anim#=1
+torso_ofx#=0
+torso_ofy#=0
+
+`char_x#=screen width()/2
+`char_y#=screen height()/2
+
+boss=0
+boss_hp#=0
+
+mirror=1
+
+move_speed#=1.0 :`.50
+anim_speed#=.050
+jump_strength=41
+momentum#=3.50 :`3.00
+fall_speed#=1. :`.50
+c_sizex=25
+c_sizey=53
+
+if level=22
+clear_images(180,190)
+
+cls
+get image 99,0,0,width,height :backdrop=1
+
+load image "anims\enemys\lbf1.bmp",180
+load image "anims\enemys\lbf2.bmp",181
+load image "anims\enemys\lbh1.bmp",185
+load image "anims\enemys\lbh2.bmp",186
+load image "anims\enemys\lbh3.bmp",187
+
+inc char_y#,26 :
+
+cartoon7(char_x#,char_y#)
+
+boss=3 :boss_hp#=.40
+if mode=hard then boss_hp#=49
+if mode=poop then boss_hp#=75
+bosx=0-132+width/2 :bosy=50
+bossdir=1 :b_speed#=.50
+hand1=0 :hand1_y=225
+hand2=0 :hand2_y=225
+sprite 100,bosx,bosy,180
+sprite 101,20-scroll_x#,hand1_y,185
+sprite 102,415-scroll_x#,hand2_y,185 :mirror sprite 102
+endif
+
+sprite 1,char_x#,char_y#,leg_anim# :offset sprite 1,11,1
+sprite 2,char_x#-torso_ofx#,char_y#-torso_ofy#,torso_anim# :offset sprite 2,15,29
+
+for r=20 to 28 :sprite r,-111,-111,50 :offset sprite r,12,12 :next r
+
+rocket=0
+rocket_anim#=50
+
+scroll_x#=0
+scroll_y#=0
+
+`init 5.9
+shoot_anim#=0
+
+`owngun2=1
+`owngun3=1
+`tape=500
+
+hpmax=10
+if mode=hard then hpmax=9
+if mode=poop then hpmax=7
+hp=hpmax
+
+mainloop:
+
+ink RGB(0,0,255),RGB(0,0,0)
+set text size 14
+set text to bold
+
+if level=4
+scroll_y#=416 :dec char_y#,416
+cart=0
+while cart<500 :cls :center text width/2-10,height/2,"I should probably fuel the ship up!" :inc cart :sync :endwhile
+endif
+
+if level=5
+scroll_y#=2264 :dec char_y#,2264
+endif
+
+if level=6
+clear_images(180,190)
+boss=1 :boss_hp#=20
+bosx=width-220 :bosy=243
+for b=1 to 4 :load image "anims\enemys\bos1a"+str$(b)+".bmp",179+b,1 :next b
+endif
+
+if level=15
+clear_images(180,190)
+boss=2 :boss_hp#=40
+bosx#=width-100 :bosy#=344
+bossdir=1 :b_speed#=.50
+get_tiles("anims\enemys\boss2.bmp",70,70,5,0,180,1,0,0)
+sprite 100,bosx#,bosy#,180
+endif
+
+if level=17 or level=18
+cls
+get image 99,0,0,width,height :backdrop=1
+endif
+
+bored=0
+
+if level=4 then fuel_max=3
+
+special=0
+
+if level=9 then time#=800.1
+
+if level=10
+scroll_y#=1125 :dec char_y#,1125
+endif
+
+if level=16
+scroll_y#=4625 :dec char_y#,4625
+backdrop=1 :cls
+get image 99,0,0,width,height
+endif
+
+if level=20
+scroll_y#=1875 :dec char_y#,1875
+endif
+
+if boss=3 then load music "media\last boss.mid",1 :loop music 1
+
+`save stuff
+duck=tape
+levelr=level
+b_score=score
+save_mode=mode
+life=lives
+
+do
+
+if backdrop=1 then paste image 99,0,0
+
+if anim_back=1 then paste image 99+e_anim4#,0,0
+
+if anim_back=2 then paste image 99+e_anim1#,0,0
+
+if level=8 and special=0
+if scroll_y#<300 then paste image 103,90-scroll_y#,0+scroll_y#*2,1
+if scroll_y#<348 then paste image 102,0,300-scroll_y#,1 :else special=1
+endif
+
+if sprite mirrored(1)=1 and sprite mirrored(2)=0
+if mirror=1 then mirror sprite 1
+if mirror=2 then mirror sprite 2
+endif
+
+inc bored
+set cursor 470,1
+
+if keystate(2)=1 and owngun2=1 then gun=1
+if keystate(3)=1 and owngun2=1 then gun=2
+if keystate(4)=1 and owngun3=1 then gun=3
+
+gosub map_control
+
+gosub enemycontrol
+
+if boss>0 then gosub boscontrol
+
+if hp<1 then get image 10000,0,0,width,height :gosub dead
+
+c_old_x#=char_x#
+c_old_y#=char_y#
+
+gosub controlplayer
+
+`fx control
+for fx=0 to 24
+if explode(fx)>0 then fx_explode(fx,scroll_x#,scroll_y#)
+if fwoosh(fx)>0 then fx_dust(fx,scroll_x#,scroll_y#)
+next fx
+
+if keystate(35)=1 and keystate(30)=1 and keystate(46)=1 and keystate(37)=1 then set cursor 1,50 :input "level",level :exiting=1
+
+`scroll control
+if char_X#+1=>width/2-12 and scroll_x#=<sizex*grid-width+grid-1
+inc scroll_x#,move_speed# :dec char_X#,move_speed#
+inc scrolx2#,move_speed#/2
+endif
+
+if char_X#-1=<width/2-12 and scroll_x#=>1
+dec scroll_x#,move_speed# :inc char_x#,move_speed#
+dec scrolx2#,move_speed#/2
+endif
+
+if char_y#+1=>height/2-c_sizey+80 and scroll_y#=<sizey*grid-height+grid-1
+inc scroll_y#,1 :dec char_y#,1
+inc scroly2#,.5
+endif
+
+if char_Y#-1=<height/2-c_sizey+80 and scroll_y#=>0
+dec scroll_y#,1 :inc char_y#,1
+dec scroly2#,.5
+endif
+
+if char_y#<110  and char_x#<120 then stat_y=110 else stat_y=0
+paste image 150,0,0+stat_y,1
+
+for en=1 to hp
+paste image 151,1,stat_y+86-en*8,1
+next en
+
+text 39,33+stat_y,""+str$(tape)
+text 43,68+stat_y,""+str$(gun)
+
+if level=4 then text 90,60+stat_y,"fuel "+str$(fuel)+"\"+str$(fuel_max)
+
+if fuel>0
+for f=1 to fuel
+paste image 1046,75+f*21,5,1
+next f
+endif
+
+if keys>0
+for f=1 to keys
+paste image 1047,0+k*21,100+stat_y,1
+next keys
+endif
+
+if exiting then goto complete
+
+if returnkey()=1 then sleep 125 :gosub pause
+
+if mode=easy
+if score>210 and owngun2=0 then owngun2=1 :message=210 :message$="You got twin rockets!"
+if score>700 and owngun3=0 then owngun3=1 :message=210 :message$="You got triple rockets!"
+endif
+
+if mode=hard
+if score>300 and owngun2=0 then owngun2=1 :message=210 :message$="You got twin rockets!"
+if score>810 and owngun3=0 then owngun3=1 :message=210 :message$="You got triple rockets!"
+endif
+
+if mode=poop
+if score>610 and owngun2=0 then owngun2=1 :message=210 :message$="You got twin rockets!"
+if score>1200 and owngun3=0 then owngun3=1 :message=210 :message$="You got triple rockets!"
+endif
+
+if message>0 then center text 256,120,message$ :dec message
+
+`if controlkey()=1 then get image 500,0,0,width,height,1 :save image "gp"+str$(frame)+".bmp",500 :inc frame
+if inkey$()="G" then dec char_y#
+
+if level=9 
+text 315,20,"Time"+str$(time#)
+dec time#,.05
+if time#<0.0 
+for t=0 to 300 :center text width/2,height/2,"OUT OF TIME!" :sync :next t
+level=9 :goto reset
+endif
+
+endif
+
+TEXT 100,30,STR$(SCREEN FPS())
+
+sync
+
+loop
+
+map_control:
+
+
+fall=1
+grounded=0
+torso=0
+l=layer
+col_x#=char_x#-10 
+col_y#=char_y#-29
+ladder=0
+
+while l>-1
+for x=0 to sizex
+for y=0 to sizey
+
+`layers greater than 1
+if map(x,y,l,0)>0 and l>1 and map(x,y,l,0)<3000
+
+if x*grid-scrolx#=>0-grid*2
+ if x*grid-scrolx#=<width
+  if y*grid-scroly#=>-grid*2
+   if y*grid-scroly#=<height
+paste image map(x,y,l,0),x*25-scrolx2#,y*25-scroly2#,1
+   endif
+  endif
+ endif
+endif
+
+endif
+
+`layers less than 2
+
+if map(x,y,l,0)>0 and l<2
+
+if x*grid-scroll_x#=>0-grid*2
+ if x*grid-scroll_x#=<width
+  if y*grid-scroll_y#=>-grid*2
+   if y*grid-scroll_y#=<height
+if image exist(map(x,y,l,0))=1 then paste image map(x,y,l,0),x*25-scroll_x#,y*25-scroll_y#,1
+   endif
+  endif
+ endif
+endif
+
+if l=0 and map(x,y,l,1)=25
+`53
+cx=x*grid-scroll_x#
+cy=y*grid-scroll_y#
+
+if col_x#+c_sizex>cx+3 and col_x#<cx+grid-2 and col_y#+50>cy and col_y#<cy+grid*2 and grounded=0
+if level<>4 then exiting=1
+if level=4 and fuel=fuel_max then exiting=1
+endif :`for feet
+
+endif :`for 25(exit)
+
+cx=x*grid-scroll_x#
+cy=y*grid-scroll_y#
+
+if l=0 and map(x,y,l,1)=100
+`53
+
+if col_x#+c_sizex>cx and col_x#<cx+grid and col_y#+53>cy and col_y#<cy+grid
+inc tape,1
+map(x,y,l,1)=0
+map(x,y,l,0)=0
+inc score,5
+endif :`for feet
+
+endif :`for 100(tape)
+
+if l=0 and map(x,y,l,1)=101
+if col_x#+c_sizex>cx and col_x#<cx+grid and col_y#+53>cy and col_y#<cy+grid
+inc hp,5
+inc score,5
+map(x,y,l,1)=0
+map(x,y,l,0)=0
+endif :
+if hp>hpmax then hp=hpmax
+endif :`for 101(hp)
+
+if l=0 and map(x,y,l,1)=102
+if col_x#+c_sizex>cx and col_x#<cx+grid and col_y#+53>cy and col_y#<cy+grid
+play sound 6
+inc fuel,1
+inc score,5
+map(x,y,l,1)=0
+map(x,y,l,0)=0
+endif :
+endif :`for 102(fuel)
+
+if l=0 and map(x,y,l,1)=103
+if col_x#+c_sizex>cx and col_x#<cx+grid and col_y#+57>cy and col_y#<cy+grid
+inc keys,1
+inc score,5
+map(x,y,l,1)=0
+map(x,y,l,0)=0
+endif :
+endif :`for 103(key)
+
+if l=0 and map(x,y,l,1)=104
+if col_x#+c_sizex>cx and col_x#<cx+grid and col_y#+53>cy and col_y#<cy+grid
+play sound 5
+inc lives,1
+inc score,10
+map(x,y,l,1)=0
+map(x,y,l,0)=0
+endif :
+endif :`for 104(extra life)
+
+if l=0 and map(x,y,l,1)=110
+if col_x#+c_sizex>cx+30 and col_x#<cx+grid*2-30 and col_y#+53>cy and col_y#<cy+grid*2
+ if keys>0 
+ map(x,y,l,1)=0
+ map(x,y,l,0)=0
+ dec keys
+ play sound 3
+ else
+     if mirror=1 then dec char_X#,Move_speed#*3
+     if mirror=2 then inc char_X#,Move_speed#*3
+ endif
+
+endif :
+endif :`for 110(locked door)
+
+
+if l=0 and map(x,y,l,1)=10
+`53
+cx=x*grid-scroll_x#
+cy=y*grid-scroll_y#
+
+if col_x#+c_sizex>cx+5 and col_x#<cx+grid-5 and col_y#+53>cy+2 and col_y#<cy+grid-2 and grounded=0
+if hurt<1 then hp=0
+endif :`for feet
+
+endif :`for 10(spikes,lava,ect...)
+
+` main type collision
+if l=0 and map(x,y,l,1)=1
+`53
+cx=x*grid-scroll_x#
+cy=y*grid-scroll_y#
+
+if col_x#+c_sizex>cx and col_x#<cx+grid and col_y#+53>cy and col_y#+49<cy+grid/3 and grounded=0 and sude=0
+dec CHAR_y#,fall_speed# :jump=jump_strength :grav#=momentum# :fall=0 :grounded=1
+endif :`for feet
+
+if col_x#+c_sizex>cx+6 and col_x#<cx+grid and col_y#+49>cy+3 and col_y#+12<cy+grid 
+side=1
+`and grounded=0
+     if mirror=1 then dec char_X#,Move_speed#
+     if mirror=2 then inc char_X#,Move_speed#
+     jump=0
+endif :`for rest
+
+if col_x#+c_sizex>cx and col_x#<cx+grid and col_y#+3>cy+20 and col_y#+1<cy+grid 
+inc char_y#,1
+endif :`for top of head
+
+
+`enemy colide
+for e=180 to 199
+e_col=0
+if en_hp(e)>0
+en_col_x=en_x#(e)-15-scroll_x#
+if en_col_x+28>cx and en_col_x<cx+grid and en_y#(e)+50-scroll_y#>cy and en_y#(e)-scroll_y#<cy+8
+if en_var(e)=0 and e_col=0 then en_x#(e)=en_x#(e)+3 :en_var(e)=1 :e_col=1
+if en_var(e)=1 and e_col=0 then en_x#(e)=en_x#(e)-3 :en_var(e)=0 :e_col=1
+endif
+
+endif
+next e 
+
+`blow up
+for r=0 to 8
+
+  if rocket(r)>0
+if rocket_x#(r)-scroll_x#+6>cx and rocket_x#(r)-scroll_x#<cx+grid and rocket_y#(r)-scroll_y#+5>cy and rocket_y#(r)-scroll_y#<cy+grid
+
+for ex=0 to 24
+if explode(ex)<1 then explode(ex)=50 :explodex(ex)=rocket_x#(r)-24 :explodey(ex)=rocket_y#(r)-24 :ex=25
+next ex
+
+rocket_x#(r)=-9999
+
+endif
+  endif
+next r
+
+endif :`for 1
+
+`/
+if l=0 and map(x,y,l,1)=2
+`53
+cx2=x*grid-scroll_x#
+cy2=y*grid-scroll_y#
+coled=0
+for p=0 to 24
+cx=cx2+p
+cy=cy2+24-p
+if col_x#+c_sizex-4>cx and col_x#<cx+1 and col_y#+53>cy and col_y#<cy+p
+dec CHAR_y#,fall_speed# :jump=jump_strength :grav#=momentum# :fall=0 :grounded=1
+endif :`for feet
+
+next p
+
+endif :`for /
+
+col_y#=char_y#-29
+`\\ colide
+if l=0 and map(x,y,l,1)=3
+`53
+cx2=x*grid-scroll_x#
+cy2=y*grid-scroll_y#
+coled=0
+for p=0 to 24
+cx=cx2+p
+cy=cy2+p
+if col_x#+c_sizex-6>cx and col_x#<cx+1 and col_y#+53>cy and col_y#<cy+p
+dec CHAR_y#,fall_speed# :jump=jump_strength :grav#=momentum# :fall=0 :grounded=1
+endif :`for feet
+
+next p
+
+endif :`for \
+
+`frozen slant /
+if l=0 and map(x,y,l,1)=21
+`53
+cx2=x*grid-scroll_x#
+cy2=y*grid-scroll_y#
+coled=0
+for p=0 to 24
+cx=cx2+p
+cy=cy2+24-p
+if col_x#+c_sizex-4>cx and col_x#<cx+1 and col_y#+53>cy and col_y#<cy+p
+dec CHAR_y#,fall_speed# :jump=jump_strength :grav#=momentum# :fall=0 :grounded=1
+dec char_x#,.75
+endif :`for feet
+
+next p
+
+endif :`for frozen /
+
+`crumble plat
+if l=0 and map(x,y,l,1)=22
+cx=x*grid-scroll_x#
+cy=y*grid-scroll_y#
+
+if col_x#+c_sizex>cx and col_x#<cx+grid and col_y#+53>cy and col_y#+40<cy+grid/3 and grounded=0
+dec CHAR_y#,fall_speed# :jump=jump_strength :grav#=momentum# :fall=0 :grounded=1
+map(x,y,l,1)=0
+map(x,y,l,0)=0
+for ex=0 to 24
+if fwoosh(ex)<1 then fwoosh(ex)=50 :fwooshx(ex)=x*grid+6:fwooshy(ex)=y*grid-2 :ex=25
+next ex
+endif :`for feet
+
+endif :`for brakable
+
+`ladder #
+if l=0 and map(x,y,l,1)=20
+`53
+cx=x*grid-scroll_x#
+cy=y*grid-scroll_y#
+
+if col_x#+c_sizex>cx+5 and col_x#<cx+grid-10 and col_y#+49>cy and col_y#+30<cy+grid and ladder=0 and shiftkey()=0
+dec CHAR_y#,fall_speed# :jump=jump_strength :grav#=momentum# :fall=0 :grounded=1 
+ladder=1
+  if spacekey()=0
+if upkey()=1 then dec char_y#,.5 :inc ladan#,.1 :inc l_ladan#,.1
+if downkey()=1 then inc char_y#,.5 :inc ladan#,.1 :inc l_ladan#,.1
+  endif
+endif :
+
+endif :`for #(ladder)
+
+
+endif :`for image existanse
+
+next x
+next y
+dec l
+endwhile
+
+if char_x#<1 then char_x#=1
+if char_x#>511 then char_x#=511
+
+if char_y#>height+20 then hp=0
+
+if fall=1 then bored=0
+
+return
+
+controlplayer:
+`if controlkey()=1 then dec char_y#,fall_speed#
+jumped=0
+
+moved=0
+
+inc char_y#,fall_speed# :dec jump
+
+`if char_y#>345 then dec char_y#,fall_speed# :jump=jump_strength :grav#=momentum# :fall=0
+
+if disable=0
+
+if shiftkey()=1 and jump>0 and grav#>0.0 then dec char_y#,grav# :dec grav#,.02 :jumped=1 :bored=0
+if jumped=0 and grav#<momentum# then jump=0
+
+if rightkey()=1 
+bored=0
+ inc char_x#,move_speed#
+  if jumped=1 then inc char_x#,move_speed#/3
+ inc leg_anim#,anim_speed#
+ if mirror=2 then mirror sprite 1 :mirror sprite 2 :offset sprite 2,15,29 :mirror=1
+moved=1
+endif
+
+if leftkey()=1 
+bored=0
+ dec char_x#,move_speed#
+ if jumped=1 then dec char_x#,move_speed#/3
+ inc leg_anim#,anim_speed#
+ if mirror=1 then mirror sprite 1 :mirror sprite 2 :offset sprite 2,14,29 :mirror=2
+moved=1
+endif
+
+endif :`for disibity
+
+
+if leg_anim#>23.9 then leg_anim#=20.0
+
+if moved=0 and leg_anim#>20.9 then leg_anim#=20.0
+`stoped
+`if moved=0 then 
+inc torso_anim#,.05 :if torso_anim#>2.95 then torso_anim#=1
+`borred
+if bored>109 and bored<135 then torso_anim#=12
+if bored>134 and bored<186 then torso_anim#=13
+if bored=280 then bored=0
+`fall
+if fall=1 then leg_anim#=25.0 :torso_anim#=4.0
+
+if jumped=1 then leg_anim#=24.0 :torso_anim#=3.0
+
+if ladan#>1.8 then ladan#=0.0
+if l_ladan#>2.8 then l_ladan#=0.0
+if ladder=1 then torso_anim#=14.0+ladan# :leg_anim#=26+l_ladan#
+
+`rocket
+if int(shoot_anim#)=5 then torso_anim#=8
+if int(shoot_anim#)=4 then torso_anim#=9
+if int(shoot_anim#)=3 then torso_anim#=10
+if int(shoot_anim#)=2 then torso_anim#=11
+if shoot_anim#=1.5 then rotate sprite 2,350
+if shoot_anim#=.9 then rotate sprite 2,0
+if int(shoot_anim#)=1 then torso_anim#=8
+
+disable=0
+
+if hurt>0
+
+if hurt>81
+disable=1
+torso_anim#=7.0
+if mirror=1 then dec char_x#,.5
+if mirror=2 then inc char_x#,.5
+endif
+
+if hurt>86 then torso_anim#=6.0
+
+flash_sprite(1)
+flash_sprite(2)
+if hurt=1 then show sprite 1 :show sprite 2
+
+dec hurt
+endif
+
+sprite 1,char_x#,char_y#,leg_anim#
+sprite 2,char_x#-torso_ofx#,char_y#-torso_ofy#,torso_anim#
+
+if rocket>2 then rocket=0
+if wate>0 then dec wate
+
+if shoot_anim#>0.0 then dec shoot_anim#,.1
+
+`rockets
+if spacekey()=1 and hurt<1
+ bored=0
+ if rocket(rocket)<1 and wate<1
+  rocket(rocket)=230
+if mirror=1 then rocket_x#(rocket)=char_x#+23+scroll_x# :rocket_y#(rocket)=char_y#-12+scroll_y#:rotate sprite rocket+20,0
+if mirror=2 then rocket_x#(rocket)=char_x#-20+scroll_x# :rocket_y#(rocket)=char_y#-13+scroll_y#:rotate sprite rocket+20,180
+  rocket_direc(rocket)=mirror
+
+if gun>1 and tape>1
+dec tape,2
+  rocket(rocket+3)=230
+if mirror=1 then rocket_x#(rocket+3)=char_x#+23+rnd(2)-rnd(3)+scroll_x# :rocket_y#(rocket+3)=char_y#-5+scroll_y#:rotate sprite rocket+20+3,0
+if mirror=2 then rocket_x#(rocket+3)=char_x#-20-rnd(2)+scroll_x# :rocket_y#(rocket+3)=char_y#-6+scroll_y#:rotate sprite rocket+20+3,180
+  rocket_direc(rocket+3)=mirror
+endif
+
+if gun=3 and tape>1
+dec tape,2
+  rocket(rocket+6)=230
+if mirror=1 then rocket_x#(rocket+6)=char_x#+23+rnd(2)+scroll_x# :rocket_y#(rocket+6)=char_y#-19+scroll_y# :rotate sprite rocket+20+6,0
+if mirror=2 then rocket_x#(rocket+6)=char_x#-20+rnd(2)+scroll_x# :rocket_y#(rocket+6)=char_y#-18+scroll_y# :rotate sprite rocket+20+6,180
+  rocket_direc(rocket+6)=mirror
+endif
+
+shoot_anim#=5.9
+play sound 1
+  wate=50
+
+  inc rocket
+ endif
+endif
+
+inc rocket_anim#,.5
+if rocket_anim#>51.5 then rocket_anim#=50
+
+for r=0 to 8
+ if rocket(r)>0
+ rocket(r)=rocket(r)-1
+`  paste image rocket_anim#,rocket_x#(r),rocket_y#(r),1
+sprite r+20,rocket_x#(r)-scroll_x#,rocket_y#(r)-scroll_y#,rocket_anim#
+  if rocket_direc(r)=1 then rocket_x#(r)=rocket_x#(r)+2.0
+  if rocket_direc(r)=2 then rocket_x#(r)=rocket_x#(r)-2.0
+  if rocket_x#(r)-scroll_x#>width then rocket_x#(r)=-99999 :sprite r+20,rocket_x#(r)-scroll_x#,rocket_y#(r)-scroll_y#,rocket_anim#
+  if rocket(r)<1 then rocket_x#(r)=-999999 :sprite r+20,rocket_x#(r)-scroll_x#,rocket_y#(r)-scroll_y#,rocket_anim#
+ endif
+next r
+
+return
+
+enemycontrol:
+
+if mode=poop
+inc timy
+if timy=650 
+timy=0
+dnr=rnd(2)
+if dnr=1 
+for e=220 to 239
+if en_hp(e)<1 
+en_direc(e)=rnd(3)
+en_hp(e)=3+rnd(2) :
+en_x#(e)=width+scroll_x# :en_y#(e)=height/2+scroll_y# :e=240
+endif
+next e
+endif
+
+endif
+endif :`poop mode
+
+col_x#=char_x#-10 
+col_y#=char_y#-29
+
+`+2
+inc e_anim1#,.050
+if e_anim1#>2.50 then e_anim1#=0.0
+
+`+3
+inc e_anim2#,.050
+if e_anim2#>3.50 then e_anim2#=0.0
+
+`+1
+inc e_anim3#,.50
+if e_anim3#>1.1 then e_anim3#=0.0
+
+`+1 slow
+inc e_anim4#,.10
+if e_anim4#>1.50 then e_anim4#=0.0
+
+`inc e1_move,1
+`if e1_move<90 then e1_move#=-.75
+`if e1_move>89 then e1_move#=.75
+`if e1_move>177 then e1_move=0
+
+inc e_movin
+if e_movin>150 then e_movin=0
+
+if e1_shot>60 then e1_shot=0
+inc e1_shot,1
+`set cursor 0,200
+for e=0 to 240
+
+e_no_collide=0
+
+e_pluss_x=0
+
+kill_sprite=0
+
+if e1_shot=60 then e1_shoot=rnd(10) :if e1_shoot=>9 then e1_shoot=20
+
+if en_hp(e)>0
+
+`en_hp(e)=0
+
+if e<20
+if en_x#(e)-scroll_x#=>0-grid*55
+ if en_x#(e)-scroll_x#=<width+grid*55
+  if en_y#(e)-scroll_y#=>-grid*55
+   if en_y#(e)-scroll_y#=<height+grid*55
+
+e1_move#=0.0
+
+if en_shot(e)<200 
+en_var(e)=en_var(e)+1
+if en_var(e)<90 then e1_move#=-.75
+if en_var(e)>89 then e1_move#=.75
+if en_var(e)>177 then en_var(e)=0
+endif
+
+`shoot at you
+if e1_shoot=20
+ if en_shot(e)<1
+  en_shot(e)=250 :en_shot_dir(e)=en_direc(e) :en_shot_x(e)=en_x#(e) :en_shot_y(e)=en_y#(e)+23
+ endif
+endif
+enan=3000+e_anim1#
+
+if en_shot(e)>240 then enan=3003
+if en_shot(e)<240 and en_shot(e)>229 then enan=3004
+
+sprite e+1000,en_x#(e)-scroll_x#,en_y#(e)-scroll_y#,enan
+offset sprite e+1000,31,0
+if en_var(e)>89 and en_direc(e)=0 then en_direc(e)=1 :mirror sprite e+1000
+if en_vaR(E)<90 and en_direc(e)=1 then en_direc(e)=0 :mirror sprite e+1000
+
+en_x#(e)=en_x#(e)+e1_move#
+
+`colide info goes here :5 pieces of info?
+en_col_x=en_x#(e)-15-scroll_x# :en_col_y=en_y#(e)-scroll_y# :en_size_x=35 :en_size_y=61 :kill_sprite=1 :get_points=3
+   endif
+  endif
+ endif
+endif
+
+endif :`for enemy 1 (alien trooper)
+
+if e>19 and e<40 :`2 puncher 
+
+if en_x#(e)-scroll_x#=>0-grid*41
+ if en_x#(e)-scroll_x#=<width+grid*41
+  if en_y#(e)-scroll_y#=>-grid*41
+   if en_y#(e)-scroll_y#=<height+grid*41
+
+en_var(e)=en_var(e)+1
+if en_var(e)<90 then e1_move#=-.75
+if en_var(e)>89 then e1_move#=.75
+if en_var(e)>177 then en_var(e)=0
+
+sprite e+1000,en_x#(e)-scroll_x#,en_y#(e)-scroll_y#,3006+e_anim2#
+offset sprite e+1000,31,0
+if en_var(e)>89 and en_direc(e)=0 then en_direc(e)=1 :mirror sprite e+1000
+if en_vaR(E)<90 and en_direc(e)=1 then en_direc(e)=0 :mirror sprite e+1000
+
+en_x#(e)=en_x#(e)+e1_move#
+
+`colide info goes here :5 pieces of info?
+en_col_x=en_x#(e)-15-scroll_x# :en_col_y=en_y#(e)-scroll_y# :en_size_x=35 :en_size_y=61 :kill_sprite=1 :get_points=3
+   endif
+  endif
+ endif
+endif
+
+endif :`for enemy 2 (punch alein)
+
+if e>39 and e<60 :`3 octo
+
+if en_x#(e)-scroll_x#=>0-grid*41
+ if en_x#(e)-scroll_x#=<width+grid*41
+  if en_y#(e)-scroll_y#=>-grid*41
+   if en_y#(e)-scroll_y#=<height+grid*41
+
+e1_move#=0.0
+
+if en_shot(e)<200 
+en_var(e)=en_var(e)+1
+if en_var(e)<90 then e1_move#=-.75
+if en_var(e)>89 then e1_move#=.75
+if en_var(e)>177 then en_var(e)=0
+endif
+enpy=en_y#(e)-scroll_y#
+enpx=en_x#(e)-scroll_x#
+if Sqrt((char_x# - enpx)^2 + (char_y# - enpy)^2 + (0 - 0)^2) <300
+ if char_x#<en_x#(e)-scroll_x# then en_x#(e)=en_x#(e)-.25+rnd(1.0)/4 
+ if char_x#>en_x#(e)-scroll_x# then en_x#(e)=en_x#(e)+.25+rnd(1.0)/4 
+ if char_y#<en_y#(e)-scroll_y# then en_y#(e)=en_y#(e)-.25+rnd(1.0)/4 
+ if char_y#>en_y#(e)-scroll_y# then en_y#(e)=en_y#(e)+.25+rnd(1.0)/4 
+endif
+
+sprite e+1000,en_x#(e)-scroll_x#,en_y#(e)-scroll_y#,3015
+offset sprite e+1000,16,16
+
+if en_var(e)>89 and en_direc(e)=0 then en_direc(e)=1 :mirror sprite e+1000
+if en_vaR(E)<90 and en_direc(e)=1 then en_direc(e)=0 :mirror sprite e+1000
+
+`en_x#(e)=en_x#(e)+e1_move#
+
+`colide info goes here :5 pieces of info?
+en_col_x=en_x#(e)-16-scroll_x# :en_col_y=en_y#(e)-scroll_y#-16 :en_size_x=32 :en_size_y=32 :kill_sprite=1 :get_points=4
+   endif
+  endif
+ endif
+endif
+
+endif :`for enemy 3 (probot eyeball thingamabob)
+
+if e>59 and e<80 :`4 cannon
+
+if en_x#(e)-scroll_x#=>0-grid*45
+ if en_x#(e)-scroll_x#=<width+grid*45
+  if en_y#(e)-scroll_y#=>-grid*45
+   if en_y#(e)-scroll_y#=<height+grid*45
+
+if e1_shoot=20
+ if en_shot(e)<1
+  en_shot(e)=250 :en_shot_dir(e)=en_direc(e) :en_shot_x(e)=en_x#(e) :en_shot_y(e)=en_y#(e)+18
+ endif
+endif
+
+paste image 3017,en_x#(e)-scroll_x#,en_y#(e)-scroll_y#,1
+
+`colide info goes here :5 pieces of info?
+en_col_x=en_x#(e)-scroll_x# :en_col_y=en_y#(e)-scroll_y# :en_size_x=40 :en_size_y=40 :kill_sprite=0 :get_points=4
+   endif
+  endif
+ endif
+endif
+
+endif :`for enemy 4 (cannon)
+
+if e>79 and e<100 :`5 army tank
+
+if en_x#(e)-scroll_x#=>0-grid*45
+ if en_x#(e)-scroll_x#=<width+grid*45
+  if en_y#(e)-scroll_y#=>-grid*45
+   if en_y#(e)-scroll_y#=<height+grid*45
+
+if e1_shoot=20
+ if en_shot(e)<1
+  en_shot(e)=250 :en_shot_dir(e)=en_direc(e) :en_shot_x(e)=en_x#(e) :en_shot_y(e)=en_y#(e)+8
+ endif
+endif
+
+if e1_shoot=3
+ if grenade(e-80,0,0)<1
+  grenade(e-80,0,0)=300 :grenade(e-80,1,0)=en_x#(e)+10 :grenade(e-80,0,1)=en_y#(e)+8
+ endif
+endif
+
+ENAN=3020+E_ANIM3#
+IF EN_SHOT(E)>229 THEN ENAN=3022
+
+paste image enan,en_x#(e)-scroll_x#,en_y#(e)-scroll_y#,1
+
+`colide info goes here :5 pieces of info?
+en_col_x=en_x#(e)-scroll_x#+20 :en_col_y=en_y#(e)-scroll_y# :en_size_x=100 :en_size_y=45 :kill_sprite=0 :get_points=9
+   endif
+  endif
+ endif
+endif
+
+endif :`for enemy 5 (tank)
+
+if e>99 and e<120 :`6 SLIME 
+
+if en_x#(e)-scroll_x#=>0-grid*65
+ if en_x#(e)-scroll_x#=<width+grid*65
+  if en_y#(e)-scroll_y#=>-grid*45
+   if en_y#(e)-scroll_y#=<height+grid*45
+
+en_var(e)=en_var(e)+1
+if en_var(e)<90 then e1_move#=-1.
+if en_var(e)>89 then e1_move#=1.
+if en_var(e)>177 then en_var(e)=0
+
+sprite e+1000,en_x#(e)-scroll_x#,en_y#(e)-scroll_y#,3025
+offset sprite e+1000,31,0
+if en_var(e)>89 and en_direc(e)=0 then en_direc(e)=1 :mirror sprite e+1000
+if en_vaR(E)<90 and en_direc(e)=1 then en_direc(e)=0 :mirror sprite e+1000
+
+en_x#(e)=en_x#(e)+e1_move#
+
+`colide info goes here :5 pieces of info?
+en_col_x=en_x#(e)-15-scroll_x# :en_col_y=en_y#(e)-scroll_y# :en_size_x=35 :en_size_y=30 :kill_sprite=1 :get_points=1
+   endif
+  endif
+ endif
+endif
+
+endif :`for enemy 6 (SLIME)
+
+if e>119 and e<140 :`7 jet spikes
+
+if en_x#(e)-scroll_x#=>0-grid*45
+ if en_x#(e)-scroll_x#=<width+grid*45
+  if en_y#(e)-scroll_y#=>-grid*45
+   if en_y#(e)-scroll_y#=<height+grid*45
+
+if en_var(e)=1 then en_y#(e)=en_y#(e)-1 
+if en_var(e)=2 then en_y#(e)=en_y#(e)+1
+
+sprite e+1000,en_x#(e)-scroll_x#,en_y#(e)-scroll_y#,3030+e_anim3#
+offset sprite e+1000,0,15
+if en_var(e)=2 and en_direc(e)=0 then en_direc(e)=1 :flip sprite e+1000
+if en_vaR(E)=1 and en_direc(e)=1 then en_direc(e)=0 :flip sprite e+1000
+
+if en_y#(e)-scroll_y#<-70 then en_y#(e)=sizey*25 :`en_oldy(e-120)
+if en_y#(e)-scroll_y#>height+75 then en_y#(e)=0 :`en_oldy(e-120)-scroll_y#
+
+`colide info goes here :5 pieces of info?
+en_col_x=en_x#(e)-2-scroll_x# :en_col_y=en_y#(e)-scroll_y#-10 :en_size_x=9 :en_size_y=28 :kill_sprite=1 :get_points=10
+   endif
+  endif
+ endif
+endif
+
+endif :`for enemy 7 (jetspikes)
+
+tile_up=0
+
+if e>139 and e<160 :`8 tile up
+
+if en_x#(e)-scroll_x#=>0-grid*49
+ if en_x#(e)-scroll_x#=<width+grid*49
+  if en_y#(e)-scroll_y#=>-grid*49
+   if en_y#(e)-scroll_y#=<height+grid*49
+
+tile_up_y=0
+
+enpy=en_y#(e)-scroll_y#
+enpx=en_x#(e)-scroll_x#
+if Sqrt((char_x# - enpx)^2 + (char_y# - enpy)^2 + (0 - 0)^2) <60
+tile_up=1
+tile_up_y=4
+
+if e1_shoot=20
+ if en_shot(e)<1
+  en_shot(e)=250 :en_shot_dir(e)=en_direc(e) :en_shot_x(e)=en_x#(e) :en_shot_y(e)=en_y#(e)+6
+ endif
+endif
+
+endif
+
+enan=3035
+if tile_up then enan=3036
+paste image enan,en_x#(e)-scroll_x#,en_y#(e)-scroll_y#-tile_up_y,1
+
+`colide info goes here :5 pieces of info?
+e_up_y=17=0
+if tile_up=1 then e_up_y=17
+en_col_x=en_x#(e)-scroll_x# :en_col_y=en_y#(e)+5-scroll_y#-e_up_y :en_size_x=25 :en_size_y=30 :kill_sprite=0 :get_points=10
+   endif
+  endif
+ endif
+endif
+
+endif :`for enemy 8 (tile up)
+
+if e>159 and e<180 :`9 robot
+
+if en_x#(e)-scroll_x#=>0-grid*45
+ if en_x#(e)-scroll_x#=<width+grid*45
+  if en_y#(e)-scroll_y#=>-grid*45
+   if en_y#(e)-scroll_y#=<height+grid*45
+
+en_var(e)=en_var(e)+1
+if en_var(e)<125 then e1_move#=-1
+if en_var(e)>124 then e1_move#=1
+if en_var(e)>248 then en_var(e)=0
+
+enan=3040+e_anim3#
+eenx=en_x#(e)-scroll_x#
+eeny=en_y#(e)-scroll_y#
+if Sqrt((char_x#+28 - eenx)^2 + (char_y# - eeny)^2 ) <60
+enan=3042+e_anim3# 
+endif
+
+
+sprite e+1000,en_x#(e)-scroll_x#,en_y#(e)-scroll_y#,enan
+offset sprite e+1000,27,0
+if en_var(e)>124 and en_direc(e)=0 then en_direc(e)=1 :mirror sprite e+1000
+if en_vaR(E)<125 and en_direc(e)=1 then en_direc(e)=0 :mirror sprite e+1000
+
+en_x#(e)=en_x#(e)+e1_move#
+
+`colide info goes here :5 pieces of info?
+en_col_x=en_x#(e)-15-scroll_x# :en_col_y=en_y#(e)-scroll_y# :en_size_x=38 :en_size_y=54 :kill_sprite=1 :get_points=1
+   endif
+  endif
+ endif
+endif
+
+endif :`for enemy 9 (robot)
+
+if e>179 and e<200 :`10! (alien guard)
+
+if en_x#(e)-scroll_x#=>0-grid*48
+ if en_x#(e)-scroll_x#=<width+grid*48
+  if en_y#(e)-scroll_y#=>-grid*48
+   if en_y#(e)-scroll_y#=<height+grid*48
+
+enan=3050+e_anim4#
+
+if e_movin=100 
+t=rnd(1)
+if t=1 then en_var(e)=rnd(1)
+endif
+
+if en_var(e)=0 then en_move#=-.5
+if en_var(e)=1 then en_move#=.5
+
+e_pluss_x=0
+enpy=en_y#(e)-scroll_y#
+enpx=en_x#(e)-scroll_x#
+if Sqrt((char_x# - enpx)^2 + (char_y# - enpy)^2 + (0 - 0)^2) <62
+enan=3051+e_anim4#
+e_pluss_x=8
+
+`else
+ `en_x#(e)=en_x#(e)+en_move#
+endif
+ en_x#(e)=en_x#(e)+en_move#
+
+sprite e+1000,en_x#(e)-scroll_x#,en_y#(e)-scroll_y#,enan
+offset sprite e+1000,32,0
+if en_var(e)=1 and en_direc(e)=0 then en_direc(e)=1 :mirror sprite e+1000
+if en_vaR(E)=0 and en_direc(e)=1 then en_direc(e)=0 :mirror sprite e+1000
+
+`colide info goes here :5 pieces of info?
+en_col_x=en_x#(e)-15-e_pluss_x-scroll_x# :en_col_y=en_y#(e)-scroll_y# :en_size_x=34+e_pluss_x :en_size_y=54 :kill_sprite=1 :get_points=5
+   endif
+  endif
+ endif
+endif
+
+endif :`for enemy 10 (alien g)
+
+if e>199 and e<220 :`11! (indestructable)
+
+if en_x#(e)-scroll_x#=>0-grid*45
+ if en_x#(e)-scroll_x#=<width+grid*45
+  if en_y#(e)-scroll_y#=>-grid*45
+   if en_y#(e)-scroll_y#=<height+grid*45
+
+enan=3050+e_anim4#
+
+if e_movin=100 
+en_direc(e)=rnd(3)
+endif
+e_old_x#=en_x#(e)
+e_old_y#=en_y#(e)
+
+if en_direc(e)=0 then en_x#(e)=en_x#(e)-.5
+if en_direc(e)=1 then en_y#(e)=en_y#(e)-.5
+if en_direc(e)=2 then en_x#(e)=en_x#(e)+.5
+if en_direc(e)=3 then en_y#(e)=en_y#(e)+.5
+
+if en_x#(e)-scroll_x#<1 then en_x#(e)=e_old_x#
+if en_x#(e)-scroll_x#>width-28 then en_x#(e)=e_old_x#
+if en_y#(e)-scroll_y#<1 then en_y#(e)=e_old_y#
+if en_y#(e)-scroll_y#>height then en_y#(e)=e_old_y#
+
+paste image 3060+e_anim1#,en_x#(e)-scroll_x#,en_y#(e)-scroll_y#,1
+
+`colide info goes here :5 pieces of info?
+en_col_x=en_x#(e)+4-scroll_x# :en_col_y=en_y#(e)-scroll_y#+4 :en_size_x=25 :en_size_y=28 :kill_sprite=0 :e_no_collide=1
+   endif
+  endif
+ endif
+endif
+
+endif :`for enemy 11 (invuln)
+
+if e>219 and e<240 :`12 enemy 12 12 12 12!!!!!!!!!!!!!!!!!!!!!!!
+
+if en_x#(e)-scroll_x#=>0-grid*48
+ if en_x#(e)-scroll_x#=<width+grid*48
+  if en_y#(e)-scroll_y#=>-grid*48
+   if en_y#(e)-scroll_y#=<height+grid*48
+enpy=en_y#(e)-scroll_y#
+enpx=en_x#(e)-scroll_x#
+if Sqrt((char_x# - enpx)^2 + (char_y# - enpy)^2 + (0 - 0)^2) <400
+ if char_x#+90<en_x#(e)-scroll_x# then en_x#(e)=en_x#(e)-.75 :en_var(e)=0
+ if char_x#+90>en_x#(e)-scroll_x# then en_x#(e)=en_x#(e)+.75 :en_var(e)=1
+ if char_y#-35<en_y#(e)-scroll_y# then en_y#(e)=en_y#(e)-.75
+ if char_y#-35>en_y#(e)-scroll_y# then en_y#(e)=en_y#(e)+.75
+endif
+
+if e1_shoot=20
+ if en_shot(e)<1
+  en_shot(e)=125 :en_shot_dir(e)=0 :en_shot_x(e)=en_x#(e) :en_shot_y(e)=en_y#(e)+18
+ endif
+endif
+
+enan=3070+e_anim3#
+
+if en_shot(e)>120 and en_shot(e)<130 then enan=3072
+if en_shot(e)>110 and en_shot(e)<120 then enan=3073
+if en_shot(e)>100 and en_shot(e)<110 then enan=3074
+
+sprite 1000+e,en_x#(e)-scroll_x#,en_y#(e)-scroll_y#,enan
+offset sprite 1000+e,25,0
+if en_var(e)=0 and en_direc(e)=1 then mirror sprite 1 :en_direc(e)=0
+if en_var(e)=1 and en_direc(e)=0 then mirror sprite 1 :en_direc(e)=1
+`colide info goes here :5 pieces of info?
+en_col_x=en_x#(e)-scroll_x#-15 :en_col_y=en_y#(e)-scroll_y# :en_size_x=48 :en_size_y=40 :kill_sprite=1 :get_points=6
+   endif
+  endif
+ endif
+endif
+
+endif :`for enemy 12!!!!!!!!!!!!! (anoying robot)!!!!!!!!!!!!!!!!!!!!!!!
+
+`collide goes here!!! (universal)
+
+if col_x#+c_sizex>en_col_x and col_x#<en_col_x+en_size_x and col_y#+53>en_col_y and col_y#<en_col_y+en_size_y and hurt<1
+hurt=90 :dec hp
+endif
+
+`rockets blow enemy to pieces
+for r=0 to 8
+ if rocket(r)>0 and en_hp(e)>0 and e_no_collide=0
+if rocket_x#(r)-scroll_x#+18>en_col_x and rocket_x#(r)-scroll_x#<en_col_x+en_size_x and rocket_y#(r)-scroll_y#+10>en_col_y and rocket_y#(r)-scroll_y#<en_col_y+en_size_y
+en_hp(e)=en_hp(e)-1
+    for ex=0 to 24
+     if explode(ex)<1 then explode(ex)=50 :explodex(ex)=rocket_x#(r)-20 :explodey(ex)=rocket_y#(r)-20 :ex=25
+    next ex
+
+rocket_y#(r)=-90000
+rocket_x#(r)=-90000
+
+  if en_hp(e)<1
+  `message=500 :message$="poop"
+   inc score,get_points
+  if kill_sprite=1 and sprite exist(e+1000) then delete sprite e+1000 :
+  en_col_y=-99999 :en_col_e=-9999
+  endif
+
+endif
+ endif
+next r
+
+endif :`for enemy hp(exist)
+
+next e
+
+`enemy bullet_control:
+for es=0 to 240
+ if en_shot(es)>0
+ en_shot(es)=en_shot(es)-1
+`  paste image rocket_anim#,rocket_x#(r),rocket_y#(r),1
+paste image 4000,en_shot_x(es)-scroll_x#,en_shot_y(es)-scroll_y#,1
+  if en_shot_dir(es)=0 then en_shot_x(es)=en_shot_x(es)-2.0
+  if en_shot_dir(es)=1 then en_shot_x(es)=en_shot_x(es)+2.0
+  if en_shot_x(es)-scroll_x#>width then en_shot_x(es)=-99999
+enshot_x=en_shot_x(es)-scroll_x#
+enshot_y=en_shot_y(es)-scroll_y#
+if col_x#+c_sizex>enshot_x and col_x#<enshot_x+24 and col_y#+53>enshot_y and col_y#<enshot_y+8 and hurt<1
+hurt=90 :dec hp
+endif
+
+ endif
+next es
+
+inc grenadean#,.25
+if grenadean#>3.75 then grenadean#=0.0
+`grenade control
+for es=0 to 20
+if grenade(es,0,0)>0
+
+if grenade(es,0,0)>275
+grenade(es,0,1)=grenade(es,0,1)-1
+endif
+
+if grenade(es,0,0)>260 and grenade(es,0,0)<276
+grenade(es,1,0)=grenade(es,1,0)-1
+grenade(es,0,1)=grenade(es,0,1)-1
+endif
+
+if grenade(es,0,0)>250 and grenade(es,0,0)<261
+grenade(es,1,0)=grenade(es,1,0)-1
+endif
+
+if grenade(es,0,0)>200 and grenade(es,0,0)<251
+grenade(es,1,0)=grenade(es,1,0)-1
+grenade(es,0,1)=grenade(es,0,1)+1
+endif
+
+if grenade(es,0,0)<201
+grenade(es,0,1)=grenade(es,0,1)+1
+endif
+
+grenade(es,0,0)=grenade(es,0,0)-1
+paste image 4006+grenadean#,grenade(es,1,0)-scroll_x#,grenade(es,0,1)-scroll_y#,1
+
+enshot_x=grenade(es,1,0)-scroll_x#
+enshot_y=grenade(es,0,1)-scroll_y#
+if col_x#+c_sizex>enshot_x and col_x#<enshot_x+20 and col_y#+53>enshot_y and col_y#<enshot_y+8 and hurt<1
+hurt=90 :dec hp
+grenade(es)=0
+for ex=0 to 24
+if explode(ex)<1 then explode(ex)=50 :explodex(ex)=enshot_x-24+scroll_x# :explodey(ex)=enshot_y-24+scroll_y# :ex=25
+next ex
+
+endif
+
+endif
+
+next es
+
+return
+
+boscontrol:
+
+paste imaGE 160,width-185,2,1
+for h=0 to boss_hp#
+paste imaGE 161,width-180+h*4,17,1
+next h
+
+boss_ran=rnd(20)
+
+if boss=1
+
+if bosmove<1 then bosan=180+e_anim4# else  bosan=182+e_anim3# :
+
+paste image bosan,bosx,bosy,1
+
+if boss_ran=2 and bosmove=<1  and bosx>width-240 then bosmove=300+rnd(10) :
+
+if bosmove>0 then dec bosmove :
+if bosmove>210 then dec bosx,2
+if bosmove<210 and bosx<width-220 then inc bosx
+
+if e1_shoot=20
+ if en_shot(0)<1
+  en_shot(0)=210 :en_shot_dir(0)=0 :en_shot_x(0)=bosx+10 :en_shot_y(0)=bosy+38
+ endif
+endif
+
+if e1_shoot=3
+ if grenade(0,0,0)<1
+  grenade(0,0,0)=300 :grenade(0,1,0)=bosx+8 :grenade(0,0,1)=bosy
+ endif
+endif
+
+
+boss_damadge#=1.
+boss_collidex=bosx+8 :boss_collidey=bosy :bs_x=72 :bs_y=68
+
+endif
+
+killsprite=0
+
+`boss 2 (mutant)
+if boss=2
+
+if boss_hp#<35 then b_speed#=.60
+if boss_hp#<30 then b_speed#=.65
+if boss_hp#<15 then b_speed#=.80
+
+if en_shot(0)>160 or grenade(0,0,0)>250
+bosmove=0
+bosan=185
+else
+if bosx#<char_x# then bosx#=bosx#+b_speed# : if bossdir=1 then bossdir=2 :mirror sprite 100
+if bosx#>char_x# then bosx#=bosx#-b_speed# : if bossdir=2 then bossdir=1 :mirror sprite 100
+bosmove=1
+endif
+
+if bosmove=1 then bosan=180+e_anim2#
+
+
+sprite 100,bosx#-scroll_x#,bosy#-scroll_y#,bosan :
+offset sprite 100,33,34
+
+if e1_shoot=20
+ if en_shot(0)<1
+  en_shot(0)=210 :en_shot_dir(0)=bossdir-1 :en_shot_x(0)=bosx# :en_shot_y(0)=bosy#
+ endif
+endif
+
+if e1_shoot=3
+ if grenade(0,0,0)<1
+  grenade(0,0,0)=300 :grenade(0,1,0)=bosx# :grenade(0,0,1)=bosy#-10
+b_move=0
+ endif
+endif
+
+boss_damadge#=1.
+boss_collidex=bosx#-scroll_x#-15 :boss_collidey=bosy#-scroll_y#-20 :bs_x=40 :bs_y=60 :killsprite=1
+
+endif
+
+`Last boss
+if boss=3
+
+`if bosmove<1 then bosan=180+e_anim4# else  
+bosan=180
+
+sprite 100,bosx-scroll_x#,bosy,bosan
+
+handan1=185 :handan2=185
+
+if hand1>0 and hand1<90 then handan1=186
+if en_shot(0)>24 then handan1=187
+
+if hand2>0 and hand2<90 then handan2=186
+if en_shot(1)>24 then handan2=187
+
+inc handmove,1
+if handmove<172/2 then inc hand1_y :inc hand2_y
+if handmove>172/2 then dec hand1_y :dec hand2_y
+if handmove>170 then handmove=0
+
+sprite 101,20-scroll_x#,hand1_y,handan1
+sprite 102,415-scroll_x#,hand2_y,handan2
+
+if e1_shoot=20 then f=rnd(3) :if f=1 then handr1=1
+e1r=rnd(220)
+if e1r=100 then handr2=1 :e1r=0
+
+incer=1 :
+if mode=hard then incer=2
+if mode=poop then incer=4
+
+if handr1=1 then inc hand1,incer
+
+if handr2=1 then inc hand2,incer
+
+if hand1>90
+handr1=0
+hand1=0
+ if en_shot(0)<1
+  en_shot(0)=150 :en_shot_dir(0)=1 :en_shot_x(0)=100+scroll_x# :en_shot_y(0)=hand1_y+42
+ endif
+endif
+
+if hand2>90
+handr2=0
+hand2=0
+ if en_shot(1)<1
+  en_shot(1)=150 :en_shot_dir(1)=0 :en_shot_x(1)=425+scroll_x# :en_shot_y(1)=hand2_y+42
+ endif
+endif
+
+`if e1_shoot=3
+` if grenade(0,0,0)<1
+`  grenade(0,0,0)=300 :grenade(0,1,0)=bosx+55 :grenade(0,0,1)=bosy+90
+` endif
+`endif
+
+if char_x#+c_sizex#>20-scroll_x# and char_x#<20+93-scroll_x# and char_y#+45>hand1_y+20 and char_y#<hand1_y+8
+if en_shot(0)<25 
+dec CHAR_y#,fall_speed# :jump=jump_strength :grav#=momentum# :fall=0 :grounded=1
+if handmove<162/2 then inc char_y#
+if handmove>162/2 then dec char_y#
+endif
+endif
+
+if char_x#+c_sizex#>20-scroll_x# and char_x#<20+93-scroll_x# and char_y#+45>hand1_y+40 and char_y#<hand1_y+90
+if hurt<1 then hurt=90 :dec hp
+endif
+
+` hand 2(left)
+if char_x#+c_sizex#>415-scroll_x# and char_x#<415+93-scroll_x# and char_y#+45>hand2_y+20 and char_y#<hand2_y+8
+if en_shot(1)<25 
+dec CHAR_y#,fall_speed# :jump=jump_strength :grav#=momentum# :fall=0 :grounded=1
+if handmove<162/2 then inc char_y#
+if handmove>162/2 then dec char_y#
+endif
+endif
+
+if char_x#+c_sizex#>415-scroll_x# and char_x#<415+93-scroll_x# and char_y#+45>hand2_y+40 and char_y#<hand2_y+90
+if hurt<1 then hurt=90 :dec hp
+endif
+
+`endif
+
+boss_damadge#=.50
+boss_collidex=bosx-scroll_x# :boss_collidey=bosy :bs_x=250 :bs_y=120
+
+endif
+
+`endif
+
+if inkey$()="+" then dec boss_hp#,2
+
+if col_x#+c_sizex>boss_collidex and col_x#<boss_collidex+bs_x and col_y#+53>boss_collidey and col_y#<boss_collidey+bs_y and hurt<1
+if boss<3 then hurt=90 :dec hp
+endif
+
+
+for r=0 to 8
+ if rocket(r)>0
+if rocket_x#(r)-scroll_x#+18>boss_collidex and rocket_x#(r)-scroll_x#<boss_collidex+bs_x and rocket_y#(r)-scroll_y#+10>boss_collidey and rocket_y#(r)-scroll_y#<boss_collidey+bs_y
+boss_hp#=boss_hp#-boss_damadge#
+    for ex=0 to 24
+     if explode(ex)<1 then explode(ex)=50 :explodex(ex)=rocket_x#(r)-20 :explodey(ex)=rocket_y#(r)-20 :ex=25
+    next ex
+
+rocket_y#(r)=-90000
+rocket_x#(r)=-90000
+
+if boss_hp#<1.0
+if killsprite=1 and sprite exist(100)=1 then delete sprite 100
+    for ex=0 to 24
+     if explode(ex)<1 then explode(ex)=50 :explodex(ex)=boss_collidex+rnd(bs_x) :explodey(ex)=boss_collidey+rnd(bs_y) :
+`     if boss=3 and explode(ex)<1 then explode(ex)=50 :explodex(ex)=boss_collidex+bx_b/2 :explodey(ex)=boss_collidey+90 :
+    next ex
+
+play sound 10
+for cart=0 to 100
+`fx control2
+
+    for ex=0 to 24
+     if explode(ex)<1 then explode(ex)=50 :explodex(ex)=boss_collidex+rnd(bs_x) :explodey(ex)=boss_collidey+rnd(bs_y) :
+    next ex
+
+for fx=0 to 24
+if explode(fx)>0 then fx_explode(fx,scroll_x#,scroll_y#)
+if fwoosh(fx)>0 then fx_dust(fx,scroll_x#,scroll_y#)
+next fx
+sync
+next cart
+
+undim explode(24)
+dim explode(24)
+
+if level=22 then cartoon8()
+
+exiting=1
+endif
+endif
+ endif
+next r
+
+return
+
+pause:
+sel=1
+do
+CLS
+text 1,1,"Score: "+str$(score)
+text 1,20,"Level: "+pass$
+text 1,40,"Live: "+str$(lives)
+`if syncy=>1000 then syncy=1000
+`if syncy=<0 then syncy=0
+text 1,100,"speed"+str$(syncy)
+
+if returnkey()=1 then sleep 200:return
+`:sync rate syncy 
+if upkey()=1 then inc syncy
+if downkey()=1 then dec syncy
+
+if save_spot=1
+text 200,100,"You can Save game on this level." :
+else
+sel=2
+endif
+
+text 350,100,"Quit"
+
+if sel=0 then sel=2
+if sel=3 then sel=1
+
+if sel=1 then line 200,110,250,110
+if sel=2 then line 350,110,375,110
+
+if rightkey()=1 then inc sel :sleep 200
+if leftkey()=1 then dec sel :sleep 200
+
+`save game
+if returnkey()=1 and sel=1
+cls
+input "save game as? ",save$
+open to write 1,"saved/"+save$+".lsg"
+
+write file 1,levelr
+write file 1,duck
+write file 1,b_score
+write file 1,save_mode
+write file 1,life
+close file 1
+cls
+print "Game saved!"
+sync
+wait 1000
+endif
+
+if spacekey()=1 and sel=2 
+w=0
+while w=0
+cls
+center text width/2,height/2,"Quit to (T)itle or (D)os?"
+if inkey$()="t" or inkey$()="T" then w=1
+if inkey$()="d" or inkey$()="D" then w=2
+sync
+endwhile
+if w=1 then goto menu
+if w=2 then end
+endif
+
+sync
+loop
+
+dead:
+
+dec lives
+
+a#=0 :
+
+for c=0 to 300
+paste image 10000,0,0
+dec char_y#,2 :`dec char_x#,2 :
+dec a#,3 :
+
+sprite 1,char_x#,char_y#,20 :offset sprite 1,11,1
+sprite 2,char_x#-torso_ofx#,char_y#-torso_ofy#,6 :offset sprite 2,15,29
+rotate sprite 1,wrapvalue(a#-30)
+rotate sprite 2,wrapvalue(a#)
+
+sync
+
+next c
+
+rotate sprite 1,0
+rotate sprite 2,0
+
+delete image 10000
+
+if lives>0
+hp=hpmax
+char_x#=width/2
+char_y#=50
+return
+endif
+
+load image "anims\what1.bmp",10000,1
+load image "anims\what2.bmp",10001,1
+
+anim#=10000
+set text size 25
+sleep 50
+do
+center text width/2,height/2-75,"Game Over"
+if anim#<10001 then inc anim#,.01
+paste image anim#,225,175,1
+if scancode()<>0
+clear_sprites(1,5000)
+clear_images(1,100000)
+goto menu
+endif
+sync
+loop
+
+complete:
+clear_sprites(1,5000)
+if image exist(10000)=1 then delete image 10000
+get image 10000,0,0,width,height,1
+
+ink RGB(30,30,30),0
+
+comp=rnd(1)
+comp=1
+
+if comp=0
+
+for yy=1 to height
+ paste image 10000,0,0
+    box 0,0,100,yy
+    box 100,height-yy,200,height
+    box 200,0,300,yy
+    box 300,height-yy,412,height
+    box 412,0,width,yy
+ sync
+next yy
+
+else
+fadeshade()
+endif
+
+inc level
+goto reset
+
+function get_lolo()
+
+load image "anims\rocket.bmp",50,1
+load image "anims\rocket2.bmp",51,1
+
+load bitmap "anims\lolol1.bmp",0
+
+image=20
+
+for x=0 to 8
+
+get image image,x*27,0,x*27+27,27,1
+inc image
+next x
+
+load bitmap "anims\lolot.bmp",0
+
+image=1
+
+for x=0 to 14
+
+get image image,x*34,0,x*34+34,34,1
+inc image
+next x
+endfunction
+
+function get_tiles(fil$,sx,sy,amountx,amounty,num,flag,px,py)
+cls
+load bitmap fil$,0
+
+for v=0 to amounty
+for u=0 to amountx
+  get image num,u*sx+px,v*sy+py,u*sx+sx,v*sy+sy,flag
+ inc num
+next u
+next v
+
+endfunction
+
+function get_enemys()
+
+load image "anims\enemys\bullet.bmp",4000
+
+for g=1 to 4
+ load image "anims\enemys\grenade"+str$(g)+".bmp",4005+g
+next g
+
+get_tiles("anims\enemys\alien1.bmp",61,61,5,0,3000,1,1,1)
+get_tiles("anims\enemys\alien2.bmp",61,61,3,0,3006,1,1,1)
+
+load image "anims\enemys\octo.bmp",3015,1
+
+load image "anims\enemys\cannon.bmp",3017,1
+
+load image "anims\enemys\tank1.bmp",3020,1
+load image "anims\enemys\tank2.bmp",3021,1
+load image "anims\enemys\tank3.bmp",3022,1
+
+load image "anims\enemys\slime.bmp",3025,1
+load image "anims\enemys\spikes.bmp",3028,1
+get_tiles("anims\enemys\spikes.bmp",13,33,1,0,3030,1,0,0)
+get_tiles("anims\enemys\tileup.bmp",25,25,1,0,3035,1,0,0)
+get_tiles("anims\enemys\robot1.bmp",55,55,3,0,3040,1,1,1)
+get_tiles("anims\enemys\elecalien.bmp",65,65,3,0,3050,1,1,1)
+get_tiles("anims\enemys\indes.bmp",59,59,2,0,3060,1,1,1)
+get_tiles("anims\enemys\robot2.bmp",51,51,4,0,3070,1,1,1)
+
+endfunction
+
+function flash_sprite(number)
+
+if sprite visible(number)=1 then hide sprite number else show sprite number
+
+endfunction
+
+function fx_explode(num,sx,sy)
+if explode(num)=40 then play sound 2
+if explode(num)>39 then exan=9001
+if explode(num)>29 and explode(num)<40 then exan=9002
+if explode(num)>19 and explode(num)<30 then exan=9003
+if explode(num)>9 and explode(num)<20 then exan=9004
+if explode(num)>0 and explode(num)<10 then exan=9005
+paste image exan,explodex(num)-sx,explodey(num)-sy,1
+
+explode(num)=explode(num)-2
+
+endfunction
+
+function fx_dust(num,sx,sy)
+
+
+if fwoosh(num)>19 then exan=9011
+if fwoosh(num)>9 and fwoosh(num)<20 then exan=9012
+if fwoosh(num)>0 and fwoosh(num)<10 then exan=9013
+paste image exan,fwooshx(num)-sx,fwooshy(num)-sy,1
+
+fwoosh(num)=fwoosh(num)-1
+
+endfunction
+
+function clear_sprites(f,l)
+
+for c=f to l
+if sprite exist(c)=1
+delete sprite c
+endif 
+next c
+
+endfunction 
+
+shipbat:
+
+load image "anims\ships\ship1.bmp",10000,1
+load image "anims\ships\ship2.bmp",10001,1
+load image "anims\ships\ship3.bmp",10002,1
+load image "anims\ships\cblast.bmp",10005,1
+load image "anims\ships\eblast.bmp",10006,1
+load image "backgrounds\s2.png",10012
+load image "anims\ships\ufo.bmp",10020,1
+
+for i=1 to 5 :load image "anims\fx\e"+str$(i)+".bmp",9000+i,1 :next i
+
+for i=1 to 3 :load image "anims\fx\fwoosh"+str$(i)+".bmp",9010+i,1 :next i
+
+`LOAD SOUND "MEDIA\JET LOOP.WAV",20
+LOAD SOUND "MEDIA\LASER.WAV",21
+
+clear_sprites(1,2)
+
+ship_speed#=1.0
+ship_anim#=10000.
+sprite 1,shipx#,shipy#,ship_anim# :offset sprite 1,44,37
+
+sx#=0.0 :sy#=0.0
+sx2#=0.0 :sy2#=0.0
+
+shipx#=width/2
+shipy#=height/2
+`energy angle x y
+
+dim explode(24)
+dim explodex(24)
+dim explodey(24)
+
+dim fwoosh(24)
+dim fwooshx(24)
+dim fwooshy(24)
+
+dim plas#(2,2,2,2)
+
+dim ship_hp(15)
+dim ship_dir(15)
+dim shipx#(15)
+dim shipy#(15)
+dim ship_shot#(15,1,1,1)
+
+dim stars(200,1)
+for s=0 to 200 : stars(s,0)=rnd(width) : stars(s,1)=rnd(height) :next s
+
+ships=2+rnd(3)
+for e=0 to SHIPS
+ship_hp(e)=3
+shipx#(e)=-250+rnd(width+250)
+shipy#(e)=-200+rnd(height+200)
+ship_dir(e)=rnd(3)
+next e
+
+plas=0
+hull=20
+
+if music exist(1)=1
+if music playing(1)=1 then stop music 1
+delete music 1
+endif
+
+load music "media\will.mid",1
+loop music 1
+
+time=0
+ink RGB(250,250,250),RGB(0,0,0)
+cls
+dot 0,0
+get image 10010,0,0,1,1
+
+do
+if inkey$()="P" then dec hull
+if time=220
+count=0
+for e=0 to 15
+ if ship_hp(e)<1
+ ship_hp(e)=3
+ shipx#(e)=-250+rnd(width+250)
+ shipy#(e)=-200+rnd(height+200)
+ ship_dir(e)=rnd(3)
+ inc count
+ endif
+if count=3 then e=16
+next e
+
+endif
+
+if time>3000
+count=0
+for e=0 to 15
+ if ship_hp(e)<1
+ ship_hp(e)=3
+ shipx#(e)=-250+rnd(width+250)
+ shipy#(e)=-200+rnd(height+200)
+ ship_dir(e)=rnd(3)
+ for ex=0 to 24
+     if fwoosh(ex)<1 then fwoosh(ex)=50 :fwooshx(ex)=shipx#(e)+20 :fwooshy(ex)=shipy#(e)+20 :ex=25
+next ex
+ inc count
+ endif
+next e
+
+endif
+
+
+paste image 10012,0,0
+
+for s=0 to 200
+STARS(s,0)=STARS(s,0)-STARX
+STARS(s,1)=STARS(s,1)-STARY
+`dot STARS(s,0),STARS(S,1)
+paste image 10010,STARS(s,0),STARS(S,1),1
+IF STARS(s,0)<-26 THEN STARS(s,0)=WIDTH+RND(20)
+IF STARS(s,0)>WIDTH+20 THEN STARS(s,0)=0-RND(20)
+IF STARS(s,1)<-26 THEN STARS(s,1)=HEIGHT+RND(20)
+IF STARS(s,1)>HEIGHT+20 THEN STARS(s,1)=0-RND(20)
+next s
+STARX=0
+STARY=0
+
+`fx control
+for fxs=0 to 24
+if explode(fxs)>0 then fx_explode(fxs,scx#,scy#)
+if fwoosh(fxs)>0 then fx_dust(fxs,scx#,scy#)
+next fxs
+
+if s_anim#>2.5 then s_anim#=0
+anim=ship_anim#+s_anim#
+if upkey()=0 then anim=10000
+
+sprite 1,shipx#,shipy#,anim
+rotate sprite 1,-a#
+
+if upkey()=1
+`IF SOUND PLAYING(20)=0 THEN PLAY SOUND 20
+shipx#=newxvalue(shipx#,wrapvalue(a#+180),ship_speed#)
+shipy#=newzvalue(shipy#,wrapvalue(a#+180),ship_speed#)
+inc s_anim#,.5
+endif
+
+if rightkey()=1 then dec a#,2
+if leftkey()=1 then inc a#,2
+
+if shipx#>width/2+1 then dec shipx#,ship_speed# :inc sx#,1 :inc sx2#,ship_speed#*2 :inc scx# :STARX=1
+if shipx#<width/2-1 then inc shipx#,ship_speed# :dec sx#,1 :dec sx2#,ship_speed#*2 :dec scx# :STARX=-1
+
+if shipy#>height/2+1 then dec shipy#,ship_speed# :inc sy#,1 :inc sy2#,ship_speed#*2 :inc scy# :STARY=1
+if shipy#<height/2-1 then inc shipy#,ship_speed# :dec sy#,1 :dec sy2#,ship_speed#*2 :dec scy# :STARY=-1
+
+if sx#<-55 then sx#=0
+if sx#>55 then sx#=0
+if sy#<-55 then sy#=0
+if sy#>55 then sy#=0
+
+if sx2#<-55 then sx2#=0
+if sx2#>55 then sx2#=0
+if sy2#<-55 then sy2#=0
+if sy2#>55 then sy2#=0
+
+if wate>0 then dec wate
+
+if plas>2 then plas=0
+
+if spacekey()=1 and plas#(plas,0,0,0)<1 and wate<1
+PLAY SOUND 21
+wate=25
+plas#(plas,0,0,0)=150
+plas#(plas,1,0,0)=a#+180
+plas#(plas,0,1,0)=scx#+shipx#-sin(-a#)*-45
+plas#(plas,0,0,1)=scy#+shipy#+cos(-a#)*-45
+inc plas
+endif
+
+for p=0 to 2
+
+if plas#(p,0,0,0)>0
+ paste image 10005,plas#(p,0,1,0)-8-scx#,plas#(p,0,0,1)-scy#,1
+ plas#(p,0,1,0)=newxvalue(plas#(p,0,1,0),wrapvalue(plas#(p,1,0,0)),4)
+ plas#(p,0,0,1)=newzvalue(plas#(p,0,0,1),wrapvalue(plas#(p,1,0,0)),4)
+ plas#(p,0,0,0)=plas#(p,0,0,0)-1
+endif
+
+next p
+
+if hull<1
+cartoon3()
+inc level
+goto reset
+endif
+
+inc etime,1
+if etime>30 then etime=0 :
+
+`enemy ship control
+for e=0 to 15
+
+if etime=30 then eran=rnd(1) :if eran=1 then ship_dir(e)=rnd(7)
+
+if ship_hp(E)>0
+
+eship_x=shipx#(e)-scx#
+eship_y=shipy#(e)-scy#
+if etime=20 then f=rnd(2) :if f=1 and ship_shot#(15,0,0,0)<1
+ship_shot#(e,0,0,0)=90
+ship_shot#(e,1,0,0)=ship_dir(e)
+ship_shot#(e,0,1,0)=shipx#(e)
+ship_shot#(e,0,0,1)=shipy#(e)
+endif
+
+if ship_dir(e)=0 then shipy#(e)=shipy#(e)-1
+if ship_dir(e)=1 then shipx#(e)=shipx#(e)+1
+if ship_dir(e)=2 then shipy#(e)=shipy#(e)+1
+if ship_dir(e)=3 then shipx#(e)=shipx#(e)-1
+
+if ship_dir(e)=4 then shipy#(e)=shipy#(e)-1 :shipx#(e)=shipx#(e)+1
+if ship_dir(e)=5 then shipx#(e)=shipx#(e)+1 :shipy#(e)=shipy#(e)+1
+if ship_dir(e)=6 then shipy#(e)=shipy#(e)+1 :shipx#(e)=shipx#(e)-1
+if ship_dir(e)=7 then shipx#(e)=shipx#(e)-1 :shipy#(e)=shipy#(e)-1
+
+sprite e+1000,shipx#(e)-scx#,shipy#(e)-scy#,10020
+offset sprite e+1000,31,31
+
+ECOLX=shipx#(e)-scx#-31 :ECOLY=shipY#(e)-scY#-31
+ESX=62 :ESY=62
+
+FOR P=0 TO 2
+IF PLAS#(P,0,0,0)>0
+px=plas#(p,0,1,0)-scx#
+py=plas#(p,0,0,1)-scy#
+IF px+10>ECOLX AND px<ECOLX+ESX AND py+10>ECOLY AND py<ECOLY+ESY
+SHIP_HP(E)=SHIP_HP(E)-1
+PLAS#(P,0,0,0)=0
+
+IF SHIP_HP(E)<1 
+DELETE SPRITE E+1000
+inc score,3
+for ex=0 to 24
+     if explode(ex)<1 then explode(ex)=50 :explodex(ex)=ECOLX+20+scx# :explodey(ex)=ECOLY+20+scy# :ex=25
+next ex
+endif
+
+ENDIF
+
+ENDIF
+NEXT P
+
+endif
+next e
+
+for e=0 to 15
+if ship_shot#(e,0,0,0)>0
+
+if ship_shot#(e,1,0,0)=0 then ship_shot#(e,0,0,1)=ship_shot#(e,0,0,1)-2
+if ship_shot#(e,1,0,0)=1 then ship_shot#(e,0,1,0)=ship_shot#(e,0,1,0)+2
+if ship_shot#(e,1,0,0)=2 then ship_shot#(e,0,0,1)=ship_shot#(e,0,0,1)+2
+if ship_shot#(e,1,0,0)=3 then ship_shot#(e,0,1,0)=ship_shot#(e,0,1,0)-2
+
+if ship_shot#(e,1,0,0)=4 then ship_shot#(e,0,0,1)=ship_shot#(e,0,0,1)-2 :ship_shot#(e,0,1,0)=ship_shot#(e,0,1,0)+2
+if ship_shot#(e,1,0,0)=5 then ship_shot#(e,0,1,0)=ship_shot#(e,0,1,0)+2 :ship_shot#(e,0,0,1)=ship_shot#(e,0,0,1)+2
+if ship_shot#(e,1,0,0)=6 then ship_shot#(e,0,0,1)=ship_shot#(e,0,0,1)+2 :ship_shot#(e,0,1,0)=ship_shot#(e,0,1,0)-2
+if ship_shot#(e,1,0,0)=7 then ship_shot#(e,0,1,0)=ship_shot#(e,0,1,0)-2 :ship_shot#(e,0,0,1)=ship_shot#(e,0,0,1)-2
+
+ship_shot#(e,0,0,0)=ship_shot#(e,0,0,0)-1
+paste image 10006,ship_shot#(e,0,1,0)-scx#,ship_shot#(e,0,0,1)-scy#,1
+endif
+colx=shipx#-25 :coly=shipy#-25 :ex=ship_shot#(e,0,1,0)-scx# :ey=ship_shot#(e,0,0,1)-scy#
+
+if colx+50>ex and colx<ex+10 and coly+50>ey and coly<ey+10
+dec hull,1
+ship_shot#(e,0,1,0)=-9990
+
+endif
+
+next es
+
+text 1,1,"Hull integerity"+str$(hull)
+
+inc time
+
+sync
+loop
+
+function clear_images(s,f)
+for i=s to f
+if image exist(i)=1
+delete image i
+endif
+next i
+endfunction
+
+function cartoon1()
+
+sleep 100
+
+width=screen width()
+while talk#<505
+
+if spacekey()=1 then talk#=10000
+
+cls
+inc talk#,.25
+center text width/2,50,left$("As an alien invasion fleet nears earth,they fear but one human.",talk#)
+if talk#>51
+center text width/2,80,left$("Lolo.The head of the Anti Evil Alien association.",talk2#)
+inc talk2#,.25
+endif
+if talk#>95
+center text width/2,110,left$("We join Lolo going outside to speak to his brother Austin",talk3#)
+inc talk3#,.25
+endif
+
+if talk#>135
+
+if spacekey()=1 then talk#=10000
+
+center text width/2,140,left$("Little does he know that a fleet of alien ships has begun it's attack.",talk4#)
+inc talk4#,.25
+endif
+
+sync
+endwhile
+
+if sound exist(100)=1 then delete sound 100
+load sound "media\ufo.wav",100
+
+load image "backgrounds\grass.png",1000
+load image "baCKgrounds\s1.png",1001
+get_tiles("anims\lolo_expresions.bmp",34,34,9,0,1010,1,0,0)
+get_tiles("anims\lolol1.bmp",27,27,5,0,1020,1,0,0)
+load image "backgrounds\smallship.bmp",1030,1
+get_tiles("anims\abduct1.bmp",61,61,2,0,1040,1,0,0)
+get_tiles("anims\eql.bmp",24,24,3,0,1050,1,1,1)
+`load
+car=1
+
+time=1
+
+legan#=1020 :lx#=-40 :ly#=310 :l_face#=1012
+
+a_anim#=1040 :ax#=320 :ay#=335
+
+while car>0
+inc time
+
+if spacekey()=1 then car=-1
+
+if time=310 then inc a_anim#,1
+backdrop off
+sprite 10,ax#,ay#,a_anim# :offset sprite 10,30,30
+rotate sprite 10,a#
+
+paste image 1001,0,0
+for x=0 to 20
+paste image 1000,x*25,364
+next x
+
+if time=180 then play sound 100
+
+if car<3
+if time<400 then inc shipx,1
+paste image 1030,-180+shipx,15,1
+endif
+
+if car=1
+if time>405 then dec ay#,2
+if time>425 then inc a#,4 :a_anim#=1042
+if time>490 then scale sprite 10,100-a_scale# :inc a_scale#,1.1
+if time>561 then car=2 :hide sprite 10
+endif
+
+if car>1
+inc shipx,2
+
+if time<760 then inc lx#,1 :inc legan#,.10 : paste image 1050,lx#+6,ly#-25,1 :else legan#=1020 : `l_face#=1012
+if time=765 then l_face#=1010 :talk=0
+
+if time>765 and time<1300 
+inc l_face#,.50 :`inc legan#,.25 :else legan#=1020
+text 120,280,left$("You kidnapped my brother alien scum!",talk)
+if l_face#>1011.50 then l_face#=1010.
+inc talk
+endif
+
+if time=1300 then talk=0 :l_face#=1012.0
+if time>1300 and time<1600
+inc l_face#,.1 
+if l_face#>1013.90 then l_face#=1012.
+text 100,280,left$("I have to get to my ship.but there are aliens everywhere!",talk)
+inc talk
+endif
+
+if time>1300 and time<1600
+inc l_face#,.1 
+if l_face#>1013.90 then l_face#=1012.
+text 100,280,left$("I have to get to my ship.but there are aliens everywhere!",talk)
+inc talk
+endif
+
+if time>1600 and time<2100
+if time<1800 then inc l_face#,.1 :if l_face#>1013.90 then l_face#=1012. 
+if time>1800 then l_face#=1019 :ofx=4
+text 100,280,left$("Good thing I got my...MISSLE LAUNCHER!",talk#)
+inc talk#,.5
+endif
+
+if legan#>1023.8 then legan#=1020
+paste image l_face#,lx#+ofx,ly#,1
+paste image legan#,lx#+4,ly#+29,1
+
+endif
+
+if time>2150 then car=0
+
+sync
+endwhile
+
+
+for f=0 to 20
+fade bitmap 0,90
+sync
+sleep 20
+next f
+
+clear_images(1000,1090)
+if sprite exist(10)=1 then delete sprite 10
+
+endfunction
+
+function cartoon2()
+
+if music exist(1)=1
+stop music 1
+delete music 1
+endif
+
+clear_images(10000,10100)
+
+ink RGB(240,240,240),0
+
+width=screen width()
+height=screen height()
+
+load image "backgrounds\grass.png",20000
+load image "baCKgrounds\s1.png",20001
+
+for l=1 to 5
+load image "anims\ships\launch"+str$(l)+".bmp",10000+l,1
+next l
+
+`load
+car=1
+
+time=1
+
+talk#=0
+
+blastoff#=10001
+while car>0
+
+if spacekey()=1 then talk#=10000
+
+inc time
+
+if blastoff#>10005.5 then blastoff#=10005
+
+paste image 20001,0,0
+for x=0 to 20
+paste image 20000,x*25,364
+next x
+
+paste image blastoff#,104,60-takeoffy,1
+
+if time>70 and time<300 then text 80,30,left$("T minus 10 to lift off...oh who cares!",talk#) :inc talk#,.25
+if time=301 then talk#=0.0
+if time>305 and time<450 then text 80,30,left$("LIFT OFF!!",talk#) :inc talk#,1
+
+if time=309 then play sound 10 
+if time>309 then inc blastoff#,.10 :inc takeoffy,2
+if time=451 then talk#=0.0
+if time>451 then center text width/2,height/2,"Here I come alien scum!!"
+
+if time=600 then car=0
+sync
+endwhile
+
+
+for f=0 to 20
+fade bitmap 0,90
+sync
+sleep 20
+next f
+
+clear_images(10000,20100)
+
+endfunction
+
+function cartoon3()
+
+
+if music exist(1)=1
+if music playing(1)=1 then stop music 1
+delete music 1
+endif
+
+cls
+
+clear_images(10000,10200)
+clear_sprites(1,3000)
+load image "anims\ships\launch1.bmp",10000,1
+load image "backgrounds\planet.png",10001,1
+
+s#=100
+a=0
+
+time=0
+
+do
+
+if spacekey()=1 then time=700
+
+paste image 10001,0,0
+
+inc time
+
+inc a
+sprite 1,x,240,10000
+rotate sprite 1,a
+offset sprite 1,129,142
+if s#>1 then dec s#,.25
+scale sprite 1,s#
+inc a
+if x<280 then inc x
+
+if time=600 then exit
+
+sync
+loop
+
+clear_images(10000,10200)
+clear_sprites(1,1000)
+
+endfunction
+
+function cartoon4()
+
+clear_images(10000,10200)
+clear_sprites(1,1000)
+
+if music exist(1)=1
+if music playing(1)=1 then stop music 1
+delete music 1
+endif
+
+ink RGB(255,255,255),RGB(0,0,0)
+
+for t=0 to 400 :center text 245,150,"Meanwhile..." :sync :next t
+
+set text size 14
+set text to normal
+
+load image "baCKgrounds\bridge.png",10001
+
+get_tiles("anims\aj1.bmp",59,59,1,0,10010,1,1,1)
+load image "anims\captin1.bmp",10020,1
+`load
+car=1
+
+time=1
+
+a_anim#=10010 :ax#=380 :ay#=325
+
+sprite 10,ax#,ay#,a_anim# :offset sprite 10,30,30 :mirror sprite 10
+sprite 20,100,335,10020 :mirror sprite 20
+sprite 21,160,335,10020 
+
+ink RGB(255,255,255),RGB(0,0,0)
+
+while car>0
+inc time
+
+if spacekey()=1 then car=-100
+
+cls
+
+`if time=310 then inc a_anim#,1
+
+sprite 10,ax#,ay#,a_anim# :offset sprite 10,30,30
+
+sprite 20,98,295,10020
+sprite 21,185,295,10020 :if time=900 then mirror sprite 21
+
+paste image 10001,0,15
+
+if time>20 and time<321
+text 120,260,left$("Alien captain:You IDIOT!You took the wrong one!",talk)
+inc talk
+endif
+
+if time=325 then talk=0
+if time>330 and time<591
+text 120,250,left$("Alien major:All humans look alike!",talk)
+inc talk
+endif
+
+if time=600 then talk=0
+if time>630 and time<891
+text 195,250,left$("Austin:when my brother gets here he's gonna blow you to pieces.",talk)
+inc a_anim#,.10
+inc talk
+endif
+
+if time=900 then talk=0
+if time>930 and time<1191
+text 120,250,left$("captain:Ha!He won't even get here! ",talk)
+a_anim#=10010.00
+inc talk
+endif
+
+if time=1200 then talk=0
+if time>1230 and time<1491
+text 300,250,left$("Austin:He will to! ",talk)
+inc talk
+inc a_anim#,.10
+endif
+
+if time=1500 then talk=0
+if time>1530 and time<1691
+text 120,250,left$("Captain:No he won't! ",talk)
+a_anim#=10010.00
+inc talk
+endif
+
+if time=1500 then talk=0
+if time>1530 and time<1691
+text 290,250,left$("Austin:yes he will!",talk)
+inc talk
+inc a_anim#,.10
+endif
+
+if time=1700 then talk=0
+if time>1730 and time<1891
+text 120,250,left$("Captain:No he won't! ",talk)
+inc talk
+a_anim#=10010.00
+endif
+
+if time=1900 then talk=0
+if time>1930 and time<2091
+text 310,250,left$("Austin:No he won't!",talk)
+inc talk
+inc a_anim#,.10
+endif
+
+if time=2100 then talk=0
+if time>2130 and time<2391
+text 120,250,left$("Captain:Yes he will!..? wu hu?!..GRRRR!!! ",talk)
+a_anim#=10010.00
+inc talk
+endif
+
+if a_anim#>10011.75 then a_anim#=10010.00
+
+if time>2450 then car=0
+
+sync
+endwhile
+
+clear_images(10000,10090)
+clear_sprites(1,50)
+
+endfunction
+
+function cartoon5()
+
+clear_images(10000,10200)
+clear_sprites(1,1000)
+
+set text size 14
+set text to normal
+
+if music exist(1)=1
+if music playing(1)=1 then stop music 1
+delete music 1
+endif
+
+ink RGB(255,255,255),RGB(0,0,0)
+
+get_tiles("anims\lolo_expresions.bmp",34,34,9,0,10020,1,0,0)
+get_tiles("anims\eql.bmp",22,22,3,0,10050,1,2,2)
+
+load image "baCKgrounds\sand.png",10001
+load image "baCKgrounds\sand2.png",10002
+load image "baCKgrounds\sand3.png",10003
+get_tiles("anims\britane.bmp",60,60,5,0,10010,1,1,1)
+`load
+car=1
+
+time=1
+
+leg_a#=20 :lx#=210 :ly#=336 :torso_anim#=10022
+
+britx#=340 :brity#=301:britane#=10010
+sprite 20,britx#,brity#,britane# :
+
+ink RGB(255,255,255),RGB(0,0,0)
+
+while car>0
+
+if spacekey()=1 then car=-1
+
+inc time
+
+sprite 1,lx#,ly#,leg_a# :offset sprite 1,11,1
+sprite 2,lx#-torso_ofx#,ly#-torso_ofy#,torso_anim# :offset sprite 2,15,29
+
+sprite 20,britx#,brity#,britane# :
+
+cls
+
+inc bak#,.05
+if bak#>2.95 then bak#=0.0
+
+paste image 10001+bak#,0,0
+
+for g=0 to 20
+paste image 1060,g*25,359
+next g
+
+if time<30 then paste image 10051,lx#-14,ly#-49,1
+
+if time>40 and time<412
+text 130,260,left$("???:What have we here? I do say!You look quite human!",talk)
+inc talk
+inc britane#,.10
+if britane#>10011.90 then britane#=10010
+torso_anim#=10022.0
+endif
+
+if time=415 then talk=0
+
+if time>415 and time<812
+text 120,260,left$("Lolo:Uh...hy,I'm Lolo.Who are you? (I bet he's A miradge.)",talk)
+inc talk
+inc torso_anim#,.10
+if torso_anim#>10023.90 then torso_anim#=10022.0
+britane#=10010
+endif
+
+if time>815 and time<1212
+text 130,260,left$("Britane:I am known as lord Britaine.Lord of britain manner.",talk)
+inc talk
+inc britane#,.10
+if britane#>10011.90 then britane#=10010
+torso_anim#=10022.0
+endif
+
+if time=815 then talk=0
+
+if time=1215 then talk=0
+
+if time>1215 and time<1612
+text 120,260,left$("Lolo:Do you know where I can get a rocket ship? Preferably a fast one.",talk)
+inc talk
+inc torso_anim#,.10
+if torso_anim#>10023.90 then torso_anim#=10022.0
+britane#=10010
+endif
+
+if time=1615 then talk=0
+
+if time>1615 and time<2012
+text 130,260,left$("Britane:Well theres mine,but it's only built for one.",talk)
+inc talk
+inc britane#,.10
+if britane#>10011.90 then britane#=10010
+torso_anim#=10022.0
+endif
+
+if time>2015 and time<2412
+text 120,260,left$("Lolo:...Hmm...So what brings you here anyway?",talk)
+inc talk
+inc torso_anim#,.10
+if torso_anim#>10023.90 then torso_anim#=10022.0
+britane#=10010
+endif
+
+if time=2015 then talk=0
+
+if time=2415 then talk=0
+
+if time=2815 then talk=0
+
+if time>2415 and time<2812
+text 68,260,left$("Britane:I'm looking for A super destructive weapon.So I can take over ALL OF EARTH!",talk)
+inc talk
+inc britane#,.10
+if britane#>10011.90 then britane#=10010
+torso_anim#=10022.0
+endif
+
+if time=3215 then talk=0
+
+if time>2815 and time<3212
+text 120,260,left$("Lolo:...Well then I guess I can leave you here.",talk)
+inc talk
+inc torso_anim#,.10
+if torso_anim#>10023.90 then torso_anim#=10022.0
+britane#=10010
+endif
+
+if time>3215 and time<3302
+text 140,260,left$("Britane:Oop!!...pip pip cheereo!",talk)
+inc talk
+inc britane#,.10
+if britane#>10011.90 then britane#=10010
+torso_anim#=10022.0
+endif
+
+if time=3303 then mirror sprite 20 :britane#=10012
+if time>3305 and time<3512
+inc britane#,1
+if leg_a#>23.90 then leg_a#=20.0
+inc britx#,1
+if britane#>10015.75 then britane#=10012
+
+endif
+
+if time>3430 then car=0
+
+sync
+endwhile
+
+clear_images(10000,10090)
+clear_sprites(1,50)
+
+set text size 14
+set text to bold
+
+endfunction
+
+FUNCTION cartoon6()
+
+dim explode(24)
+dim explodex(24)
+dim explodey(24)
+
+clear_images(10000,10200)
+clear_sprites(1,1000)
+
+set text size 14
+set text to normal
+
+if music exist(1)=1
+if music playing(1)=1 then stop music 1
+delete music 1
+endif
+
+ink RGB(255,255,255),RGB(0,0,0)
+
+get_tiles("anims\lolo_expresions.bmp",34,34,9,0,10020,1,0,0)
+get_tiles("anims\eql.bmp",22,22,3,0,10050,1,2,2)
+
+load image "baCKgrounds\sand.png",10001
+load image "baCKgrounds\sand2.png",10002
+load image "baCKgrounds\sand3.png",10003
+get_tiles("anims\britane.bmp",60,60,5,0,10010,1,1,1)
+
+for i=1 to 6 
+load image "anims\ships\brit"+str$(i)+".bmp",10080+i,1
+next i
+
+ship#=10081 :shipx#=232 :shipy#=225
+
+`load
+car=1
+
+time=1
+
+leg_a#=20 :lx#=10 :ly#=336 :torso_anim#=10022
+
+britx#=-50 :brity#=301:britane#=10010
+sprite 20,britx#,brity#,britane# :mirror sprite 20 :
+
+ink RGB(255,255,255),RGB(0,0,0)
+
+while car>0
+inc time
+
+if spacekey()=1 then car=-1
+
+sprite 1,lx#,ly#,leg_a# :offset sprite 1,11,1
+sprite 2,lx#-torso_ofx#,ly#-torso_ofy#,torso_anim# :offset sprite 2,15,29
+
+sprite 20,britx#,brity#,britane# :
+
+inc bak#,.05
+if bak#>2.95 then bak#=0.0
+
+paste image 10001+bak#,0,0
+
+for g=0 to 20
+paste image 1060,g*25,359
+next g
+
+paste image ship#,shipx#,shipy#,1
+
+if time=281 then hide sprite 1:hide sprite 2
+
+if time>10 and time<280
+
+inc lx#,1
+inc leg_a#,.25
+if leg_a#>23.75 then leg_a#=20.0
+
+`text 130,260,left$("???:What have we here? I do say!You look quite human!",talk)
+`inc talk
+`inc britane#,.10
+`if britane#>10011.90 then britane#=10010
+`torso_anim#=10022.0
+endif
+
+if time>300 and time<500
+
+if ship#<10086 then inc ship#,.5
+
+inc britane#,.5
+if leg_a#>23.90 then leg_a#=20.0
+inc britx#,1
+if britane#>10015.75 then britane#=10012
+
+`text 130,260,left$("???:What have we here? I do say!You look quite human!",talk)
+`inc talk
+`inc britane#,.10
+`if britane#>10011.90 then britane#=10010
+`torso_anim#=10022.0
+endif
+
+if time>465 and time<700
+dec shipy#,2
+endif
+
+if time>760 and time<1030
+text 130,260,left$("Britain:This is a bad predicament.",talk)
+inc talk
+inc britane#,.10
+if britane#>10011.90 then britane#=10010
+endif
+
+
+if time>1110 then car=0
+
+sync
+endwhile
+
+load image "anims\ships\bosship.png",10000
+
+clear_sprites(1,50)
+
+sprite 1,0,0,10081 :scale sprite 1,25
+
+for y=0 to 300
+cls
+paste image 10000,0,0
+sprite 1,225,475-y,10081
+sync
+next y
+delete sprite 1
+
+    for ex=0 to 2
+     if explode(ex)<1 then explode(ex)=50-rnd(3) :explodex(ex)=229+rnd(12) :explodey(ex)=160-rnd(14)
+    next ex
+
+for y=0 to 100
+paste image 10000,0,0
+
+for fx=0 to 24
+if explode(fx)>0 then fx_explode(fx,scroll_x#,scroll_y#)
+next fx
+
+sync
+
+next y
+
+
+
+clear_images(10000,10090)
+clear_sprites(1,50)
+
+set text size 14
+set text to bold
+
+endfunction
+
+function cartoon7(char_x#,char_y#)
+
+width=screen width()
+
+clear_images(10000,10200)
+clear_sprites(1,1000)
+
+set text size 14
+set text to normal
+
+if music exist(1)=1
+if music playing(1)=1 then stop music 1
+delete music 1
+endif
+
+load sound "media\laugh.wav",20
+
+ink RGB(255,255,255),RGB(0,0,0)
+
+`get_tiles("anims\lolo_expresions.bmp",34,34,9,0,10020,1,0,0)
+`get_tiles("anims\eql.bmp",22,22,3,0,10050,1,2,2)
+`load
+car=1
+
+time=1
+
+leg_anim#=20
+torso_anim#=1
+torso_ofx#=0
+torso_ofy#=0
+c_sizex=25
+c_sizey=53
+
+bosx#=0-132+width/2 :bosy#=50
+
+ink RGB(255,255,255),RGB(0,0,0)
+
+while car>0
+inc time
+
+if spacekey()=1 then car=-1
+
+sprite 1,char_x#,char_y#,leg_anim# :offset sprite 1,11,1
+sprite 2,char_x#-torso_ofx#,char_y#-torso_ofy#,torso_anim# :offset sprite 2,15,29
+
+sprite 100,bosx#,bosy#,180
+
+
+`cls
+
+paste image 99,0,0
+
+for g=0 to 20
+paste image 1017,g*25,350
+next g
+
+if time>40 and time<312
+text 110,260,left$("Lolo:I don't know who you are but you sure are ugly.",talk)
+inc talk
+endif
+
+if time=315 then talk=0
+
+if time>315 and time<712
+text 160,200,left$("????:I am your worst nightmare!",talk)
+inc talk
+endif
+
+if time=680 then play sound 20
+
+if time>800 then car=0
+
+sync
+endwhile
+
+`clear_images(10000,10090)
+`clear_sprites(1,50)
+
+set text size 14
+set text to bold
+
+endfunction
+
+function cartoon8()
+
+width=screen width()
+height=screen height()
+
+clear_images(10000,10200)
+clear_sprites(1,4000)
+
+if music exist(1)=1
+if music playing(1)=1 then stop music 1
+delete music 1
+endif
+
+ink RGB(255,255,255),RGB(0,0,0)
+if sound exist(20)=1 then delete sound 20
+load sound "media\alarm.wav",20 :loop sound 20
+
+set text size 14
+set text to normal
+
+load image "baCKgrounds\bridge.png",10001
+
+get_tiles("anims\aj1.bmp",59,59,1,0,10010,1,1,1)
+get_tiles("anims\ajw1.bmp",57,57,2,0,10015,1,1,1)
+
+load image "anims\captin1.bmp",10020,1
+load image "anims\captin2.bmp",10021,1
+get_tiles("anims\lolo_expresions.bmp",34,34,9,0,10030,1,0,0)
+`load
+car=1
+
+time=1
+
+a_anim#=10010 :ax#=380 :ay#=325 :char_x#=-50 :char_y#=328
+
+sprite 10,ax#,ay#,a_anim# :offset sprite 10,30,30 :mirror sprite 10
+sprite 20,100,335,10020 :mirror sprite 20
+sprite 21,160,335,10020 
+
+leg_anim#=20
+torso_anim#=10036
+
+sprite 1,char_x#,char_y#,leg_anim# :offset sprite 1,11,1
+sprite 2,char_x#-torso_ofx#,char_y#-torso_ofy#,torso_anim# :offset sprite 2,15,29
+
+ink RGB(255,255,255),RGB(0,0,0)
+
+while car>0
+inc time
+
+if spacekey()=1 then car=-1
+
+cls
+
+`if time=310 then inc a_anim#,1
+
+sprite 1,char_x#,char_y#,leg_anim# :offset sprite 1,11,1
+sprite 2,char_x#-torso_ofx#,char_y#-torso_ofy#,torso_anim# :offset sprite 2,15,29
+
+sprite 10,ax#,ay#,a_anim# :offset sprite 10,30,30
+
+sprite 20,98,295-bay,10020+alien_an :rotate sprite 20,bay*2
+sprite 21,185,295-bay,10020+alien_an :rotate sprite 21,bay*2
+
+paste image 10001,0,15
+
+if time>20 and time<321
+text 120,260,left$("Alien major:Captain!OUR HULL INTEGRITY HAS BEEN COMPRIMIZED!!!",talk)
+inc talk
+endif
+
+IF TIME=321 THEN TALK=0
+IF TIME=521 THEN TALK=0
+
+if time>321 and time<521
+text 120,260,left$("Alien Captain:LOOK OUT!!!",talk)
+inc talk
+endif
+
+if time>521 and time<570
+PASTE IMAGE 50,RX,300,1
+INC RX,3
+ENDIF
+
+IF TIME=570 THEN EXPLODE(1)=50 :EXPLODEX(1)=RX :EXPLODEY(1)=285 :TALK=0
+
+if time=600 then talk=0
+if time>600 and time<901
+text 205,250,left$("Austin:I told you what would happen!",talk)
+inc a_anim#,.10
+IF A_ANIM#>10011.90 THEN A_ANIM#=10010.0
+inc talk
+
+text 100,260-bay,"AAAAHHH!!!"
+alien_an=1
+inc bay,3
+inc char_x#,1
+inc leg_anim#,.25
+if leg_anim#>23.75 then leg_anim#=20.0
+endif
+
+if time=901 then talk=0
+if time>901 and time<1201
+text 205,250,left$("LOLO:Austin the entire ship is going to blow up!!",talk)
+inc talk,2
+
+inc torso_anim#,1
+if torso_anim#>10037 then torso_anim#=10036
+endif
+
+if time=1201 then talk=0
+if time>1250 and time<1501
+text 170,250,left$("Austin:Don't worry I saw some spare space suits.",talk)
+inc a_anim#,.10
+IF A_ANIM#>10011.90 THEN A_ANIM#=10010.0
+torso_anim#=10036
+inc talk
+endif
+
+if time=1501 then a_anim#=10015 :mirror sprite 10
+if time>1501 and time<1951
+
+inc char_x#,1
+inc leg_anim#,.25
+if leg_anim#>23.75 then leg_anim#=20.0
+
+inc a_anim#,.25 :if a_anim#>10017.75 then a_anim#=10015.0
+inc ax#,1.0
+endif
+
+
+if time>1950 then car=0
+
+for fx=0 to 24
+if explode(fx)>0 then fx_explode(fx,scroll_x#,scroll_y#)
+if fwoosh(fx)>0 then fx_dust(fx,scroll_x#,scroll_y#)
+next fx
+
+sync
+endwhile
+
+if sound playing(20)=1 then stop sound 20
+
+cls
+
+load music "media\cred.mid",2
+
+clear_images(10000,10090)
+clear_sprites(1,50)
+ink RGB(255,255,255),RGB(0,0,0)
+dot 1,1
+get image 100,0,0,2,2,1
+
+load image "anims/ships/bosship.png",99
+
+load image "anims\suit1.bmp",10000,1
+load image "anims\suit2.bmp",10001,1
+car=1
+time=0
+dim star(50,1)
+
+for s=0 to 50 
+star(s,0)=rnd(width)
+star(s,1)=rnd(height)
+next s
+
+do
+
+cls
+
+if car=1
+paste image 99,0,0
+for fx=0 to 24
+if explode(fx)<1 then explode(fx)=50 :explodex(fx)=90+rnd(300) :explodey(ex)=20+rnd(90)
+next fx
+
+for fx=0 to 24
+if explode(fx)>0 then fx_explode(fx,scroll_x#,scroll_y#)
+if fwoosh(fx)>0 then fx_dust(fx,scroll_x#,scroll_y#)
+next fx
+if time=800 then car=2
+endif
+
+if car=2
+
+for s=0 to 50 
+paste image 100,star(s,0),star(s,1),1
+next s
+paste image 10000,-70+width/2,-60+height/2,1
+paste image 10001,30+width/2,-60+height/2,1
+if time>1000 then center text width/2,height/2,"Austin:Well...What now?"
+if time=1400 then car=3 :set text to bold :set text size 28 :loop music 2
+endif
+
+
+if car=3
+
+for s=0 to 50 
+paste image 100,star(s,0),star(s,1),1
+star(s,1)=star(s,1)+1
+if star(s,1)>height then star(s,1)=-20+rnd(20) :star(s,0)=rnd(width)
+next s
+
+inc cred#,.20
+center text width/2,height+35-cred#,"CREDITS:"
+center text width/2,height+90-cred#,"Producer"
+center text width/2,height+125-cred#,"Logan D Malcome"
+center text width/2,height+160-cred#,"Director"
+center text width/2,height+190-cred#,"Logan D Malcome"
+center text width/2,height+235-cred#,"Main PROGRAMER"
+center text width/2,height+260-cred#,"Logan D Malcome"
+center text width/2,height+310-cred#,"Player and Map PROGRAMER"
+center text width/2,height+340-cred#,"Logan D Malcome"
+center text width/2,height+400-cred#,"AI and cartoon PROGRAMER"
+center text width/2,height+430-cred#,"Logan D Malcome"
+center text width/2,height+500-cred#,"Charecter director"
+center text width/2,height+530-cred#,"Logan D Malcome"
+center text width/2,height+600-cred#,"Quality assurance"
+center text width/2,height+630-cred#,"Austin J Malcome"
+center text width/2,height+700-cred#,"Music"
+center text width/2,height+730-cred#,"Some by Aaron Waltz"
+center text width/2,height+765-cred#,"and some by...Logan malcome"
+
+center text width/2,height+820-cred#,"ART and animation"
+center text width/2,height+850-cred#,"Logan D Malcome"
+center text width/2,height+920-cred#,"Special thanks"
+center text width/2,height+950-cred#,"Austin J Malcome"
+center text width/2,height+980-cred#,"Extreme Games"
+center text width/2,height+1010-cred#,"Andre Lamothe"
+center text width/2,height+1050-cred#,"And of course..."
+center text width/2,height+1110-cred#,"You"
+center text width/2,height+1180-cred#,"Thank you for playing"
+center text width/2,height+1280-cred#,"THE END"
+center text width/2,height+1900-cred#,"Try hard or Insanity mode!!!"
+
+endif
+
+inc time
+sync
+loop
+
+endfunction
+
+function fadeshade()
+
+width=screen width()
+height=screen height()
+
+x1=0
+x2=0
+y1=0
+y2=0
+
+size=10
+
+x1=0 :x2=width
+
+`ink RGB(0,0,0),rgb(0,0,0)
+
+while y2<40
+
+for y1=0 to 50
+
+box x1,y1*20,x2,y1*20+y2
+
+next y1
+
+inc y2
+
+sleep 25
+sync
+endwhile
+endfunction

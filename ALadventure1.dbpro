@@ -1,0 +1,74 @@
+; **** Dark BASIC Professional Project File ****
+; **** Written by DarkBASIC Professional Editor ****
+version=DBP1.00
+project name=ALadventure1
+
+; **** source file information ****
+main=ALadventure1.dba
+final source=_Temp.dbsource
+
+; **** Executable Information  ***
+; build types: exe, media, installer, alone
+executable=ALadventure1.exe
+build type=exe
+; ** Media file compression **
+compression=NO
+
+; ** Media file encryption **
+encryption=NO
+; ** Display the card options screen window? **
+card options window=NO
+
+; **** debugger information ****
+; If the editor sets this to yes, it is running in debug mode
+CLI=NO
+CommandLineArguments=
+
+; **** display mode information ****
+app title=ALadventure1
+
+; graphics mode options: fullscreen, window, desktop, fulldesktop, hidden
+graphics mode=fullscreen
+fullscreen resolution=512x384x32
+
+; arbitrary sizes are valid for windowed mode
+window resolution=640x480
+
+; **** External Files Information ****
+
+; **** Media ****
+; Example entries: media1=graphics\*.jpg
+media root path=C:\Program Files\The Game Creators\Dark Basic Professional\Projects\ALadventure1\
+media1=anims\lolol1.bmp
+media2=anims\lolot.bmp
+media3=anims\rocket.bmp
+media4=anims\rocket2.bmp
+media5=anims\enemys\alien1.bmp
+media6=anims\enemys\alien2.bmp
+media7=anims\enemys\cannon.bmp
+media8=anims\enemys\cannon1.bmp
+media9=anims\enemys\octo.bmp
+media10=anims\enemys\robot1.bmp
+media11=anims\enemys\spikes.bmp
+media12=anims\enemys\tank1.bmp
+
+; **** Icons ****
+icon1=C:\Program Files\The Game Creators\Dark Basic Professional\Projects\ALadventure1\media\title.bmp
+
+; **** Cursors ****
+
+; **** Version Info ****
+VerComments=Cool
+VerCompany=Logan malcome
+VerFileDesc=spectacular
+VerFileNumber=v1.0
+VerInternal=v1.0
+VerCopyright=eternity
+VerTrademark=
+VerFilename=
+VerProduct=
+VerProductNumber=v1.0
+
+; **** To Do ****
+
+; **** Comments ****
